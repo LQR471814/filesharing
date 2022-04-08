@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+option go_package = "server/api";
+package api;
+
+service Server {
+    rpc SendRequest(Request) returns (Response);
+    rpc AcceptRequest(Request) returns (Response);
+    rpc Upload(stream UploadData) returns (Empty);
+    rpc ListenRequests(Empty) returns (stream Request);
+    rpc ListenPeers(Empty) returns (stream PeerUpdate);
+    rpc Quit(Empty) returns (Empty);
+}
+
+message Empty {}
+
+enum DataType {
+    UNKNOWN = 0;
+    ARCHIVE = 1;
+    DOCUMENT = 2;
+    PDF = 3;
+    AUDIO = 4;
+    IMAGE = 5;
+    VIDEO = 6;
+}
+
+enum Platform {
+    DESKTOP = 0;
+    MOBILE = 1;
+    OTHER = 2;
+}
+
+message Peer {
+    string id = 1;
+    string name = 2;
+    Platform platform = 3;
+}
+
+message PeerUpdate {
+    repeated Peer peers = 1;
+}
+
+message Request {
+    string id = 1;
+    string peer = 2;
+
+    string name = 3;
+    DataType type = 4;
+    uint64 size = 5;
+}
+
+message Response {
+    bool accept = 1;
+    optional string uploadToken = 2;
+}
+
+message UploadData {
+    string target = 1;
+    string token = 2;
+    bytes data = 3;
+}
