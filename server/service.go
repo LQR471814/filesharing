@@ -4,6 +4,7 @@ import (
 	"context"
 	"filesharing/server/api"
 	"log"
+	"net"
 
 	"google.golang.org/grpc/peer"
 )
@@ -23,15 +24,11 @@ type Server struct {
 	Peers              map[string]PeerState
 }
 
-func (s *Server) waitUntilStopped(id string) {
+func (s *Server) waitUntilStopped() {
 	for {
 		select {
 		case <-s.Stop:
 			break
-		default:
-			if _, ok := s.Peers[id]; !ok {
-				return
-			}
 		}
 	}
 }
@@ -41,7 +38,24 @@ func (s *Server) getIP(ctx context.Context) string {
 	if !ok {
 		log.Fatal("Failed to get address from Join context")
 	}
-	return client.Addr.String()
+	ip, _, err := net.SplitHostPort(client.Addr.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return ip
+}
+
+func (s *Server) updatePeers() {
+	peers := []*api.Peer{}
+	for _, p := range s.Peers {
+		peers = append(peers, p.Peer)
+	}
+
+	for _, u := range s.PeerChannels {
+		u.Send(&api.PeerUpdate{
+			Peers: peers,
+		})
+	}
 }
 
 func (s *Server) SendRequest(ctx context.Context, in *api.Request) (*api.Empty, error) {
@@ -58,30 +72,33 @@ func (s *Server) SendRequest(ctx context.Context, in *api.Request) (*api.Empty, 
 
 func (s *Server) AcceptRequest(ctx context.Context, in *api.Request) (*api.Empty, error) {
 	ip := s.getIP(ctx)
+	s.AcceptanceChannels[in.Peer].Send(in)
 	s.Peers[ip].Accepted[in.Id] = in
 	delete(s.Peers[ip].Pending, in.Id)
-	s.AcceptanceChannels[in.Peer].Send(in)
 	return &api.Empty{}, nil
 }
 
 func (s *Server) ListenRequests(_ *api.Empty, server api.API_ListenRequestsServer) error {
 	ip := s.getIP(server.Context())
 	s.RequestChannels[ip] = server
-	s.waitUntilStopped(ip)
+	s.waitUntilStopped()
 	return nil
 }
 
 func (s *Server) ListenAccepted(_ *api.Empty, server api.API_ListenAcceptedServer) error {
 	ip := s.getIP(server.Context())
 	s.AcceptanceChannels[ip] = server
-	s.waitUntilStopped(ip)
+	s.waitUntilStopped()
 	return nil
 }
 
 func (s *Server) Join(in *api.Peer, server api.API_JoinServer) error {
-	log.Println("got join request")
-
 	ip := s.getIP(server.Context())
+	if _, ok := s.Peers[ip]; ok {
+		s.waitUntilStopped()
+		return nil
+	}
+
 	in.Id = ip
 	s.Peers[ip] = PeerState{
 		Peer:     in,
@@ -89,35 +106,20 @@ func (s *Server) Join(in *api.Peer, server api.API_JoinServer) error {
 		Accepted: make(map[string]*api.Request),
 	}
 
-	log.Println("1")
+	s.updatePeers()
+	log.Println("Peer joined", s.Peers)
 
-	peers := []*api.Peer{}
-	for _, p := range s.Peers {
-		peers = append(peers, p.Peer)
-	}
-
-	log.Println("2")
-
-	s.PeerChannels = append(s.PeerChannels, server)
-	for _, updater := range s.PeerChannels {
-		updater.Send(&api.PeerUpdate{
-			Peers: peers,
-		})
-	}
-
-	log.Println("Peer joined", peers)
-
-	s.waitUntilStopped(ip)
+	s.waitUntilStopped()
 	return nil
 }
 
 func (s *Server) Quit(ctx context.Context, in *api.Empty) (*api.Empty, error) {
-	peer, ok := peer.FromContext(ctx)
-	if !ok {
-		log.Fatal("Failed to get address from Join context")
-	}
-	delete(s.Peers, peer.Addr.String())
-	log.Println("Peer quit", peer)
+	ip := s.getIP(ctx)
+	delete(s.Peers, ip)
+
+	s.updatePeers()
+	log.Println("Peer quit", s.Peers, ip)
+
 	return &api.Empty{}, nil
 }
 

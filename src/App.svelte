@@ -4,7 +4,7 @@
   import { getPlatform } from "./common/utils";
 
   // const APILocation = `${window.location.origin}/api`
-  const APILocation = `http://localhost:3000/api`;
+  const APILocation = `http://localhost:3000`;
   const api = new APIClient(APILocation);
   const peer = new Peer();
 

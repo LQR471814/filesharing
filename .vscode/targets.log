@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Apr 09 14:43:54 2022
+# Make data base, printed on Sun Apr 10 08:40:01 2022
 
 # Variables
 
@@ -25,9 +25,9 @@ USERPROFILE = C:\Users\bramb
 # environment
 LOCALAPPDATA = C:\Users\bramb\AppData\Local
 # environment
-VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-755fe80f-52b3-4eb9-82af-d2974646bb3c-sock
+VSCODE_IPC_HOOK_EXTHOST = \\.\pipe\vscode-ipc-fc36a955-2add-4c50-90eb-b41c23f2897b-sock
 # environment
-VSCODE_CWD = C:\WINDOWS\system32
+VSCODE_CWD = C:\WINDOWS\System32
 # environment
 CHOCOLATEYINSTALL = C:\ProgramData\chocolatey
 # environment
@@ -43,7 +43,7 @@ GOPATH = C:\Users\bramb\Documents\Codes\Go
 # automatic
 @D = $(patsubst %/,%,$(patsubst %\,%,$(dir $@)))
 # environment
-CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_14220_EEGBDZNPORJBUTID
+CHROME_CRASHPAD_PIPE_NAME = \\.\pipe\crashpad_9424_WSGQHOYVFWFCDNHA
 # environment
 FPS_BROWSER_USER_PROFILE_STRING = Default
 # environment
@@ -103,7 +103,7 @@ MAKEFILE_LIST := makefile
 # environment
 VSCODE_VERBOSE_LOGGING = true
 # environment
-VSCODE_PID = 14220
+VSCODE_PID = 9424
 # environment
 CUDA_PATH = D:\NVIDIA GPU Computing Toolkit\CUDA\v11.6
 # automatic
@@ -271,7 +271,7 @@ all:
 # Not a target:
 makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-04-07 22:15:31
+#  Last modified 2022-04-09 21:14:50
 #  File has been updated.
 #  Successfully updated.
 
@@ -307,6 +307,6 @@ rpc:
 # strcache performance: lookups = 25 / hit rate = 20%
 # hash-table stats:
 # Load=20/8192=0%, Rehash=0, Collisions=0/25=0%
-# Finished Make data base on Sat Apr 09 14:43:54 2022
+# Finished Make data base on Sun Apr 10 08:40:01 2022
 
  
