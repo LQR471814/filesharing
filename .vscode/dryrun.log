@@ -9,8 +9,8 @@ protoc \
 	c:/Users/bramb/Documents/Codes/Go/src/filesharing/api.proto
 protoc \
 	--proto_path=c:/Users/bramb/Documents/Codes/Go/src/filesharing \
-	--js_out=import_style=commonjs:. \
-	--grpc-web_out=import_style=typescript,mode=grpcwebtext:. \
+	--js_out=import_style=commonjs:c:/Users/bramb/Documents/Codes/Go/src/filesharing/src/api \
+	--grpc-web_out=import_style=typescript,mode=grpcwebtext:c:/Users/bramb/Documents/Codes/Go/src/filesharing/src/api \
 	c:/Users/bramb/Documents/Codes/Go/src/filesharing/api.proto
 make: Leaving directory 'c:/Users/bramb/Documents/Codes/Go/src/filesharing'
  

@@ -14,84 +14,50 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// ServerClient is the client API for Server service.
+// APIClient is the client API for API service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type ServerClient interface {
-	SendRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
-	AcceptRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
-	Upload(ctx context.Context, opts ...grpc.CallOption) (Server_UploadClient, error)
-	ListenRequests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Server_ListenRequestsClient, error)
-	ListenPeers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Server_ListenPeersClient, error)
+type APIClient interface {
+	SendRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Empty, error)
+	AcceptRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Empty, error)
+	ListenAccepted(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenAcceptedClient, error)
+	ListenRequests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenRequestsClient, error)
+	Join(ctx context.Context, in *Peer, opts ...grpc.CallOption) (API_JoinClient, error)
 	Quit(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
-type serverClient struct {
+type aPIClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewServerClient(cc grpc.ClientConnInterface) ServerClient {
-	return &serverClient{cc}
+func NewAPIClient(cc grpc.ClientConnInterface) APIClient {
+	return &aPIClient{cc}
 }
 
-func (c *serverClient) SendRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, "/api.Server/SendRequest", in, out, opts...)
+func (c *aPIClient) SendRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.API/SendRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *serverClient) AcceptRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, "/api.Server/AcceptRequest", in, out, opts...)
+func (c *aPIClient) AcceptRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.API/AcceptRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *serverClient) Upload(ctx context.Context, opts ...grpc.CallOption) (Server_UploadClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Server_ServiceDesc.Streams[0], "/api.Server/Upload", opts...)
+func (c *aPIClient) ListenAccepted(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenAcceptedClient, error) {
+	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[0], "/api.API/ListenAccepted", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &serverUploadClient{stream}
-	return x, nil
-}
-
-type Server_UploadClient interface {
-	Send(*UploadData) error
-	CloseAndRecv() (*Empty, error)
-	grpc.ClientStream
-}
-
-type serverUploadClient struct {
-	grpc.ClientStream
-}
-
-func (x *serverUploadClient) Send(m *UploadData) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *serverUploadClient) CloseAndRecv() (*Empty, error) {
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	m := new(Empty)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *serverClient) ListenRequests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Server_ListenRequestsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Server_ServiceDesc.Streams[1], "/api.Server/ListenRequests", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &serverListenRequestsClient{stream}
+	x := &aPIListenAcceptedClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -101,16 +67,16 @@ func (c *serverClient) ListenRequests(ctx context.Context, in *Empty, opts ...gr
 	return x, nil
 }
 
-type Server_ListenRequestsClient interface {
+type API_ListenAcceptedClient interface {
 	Recv() (*Request, error)
 	grpc.ClientStream
 }
 
-type serverListenRequestsClient struct {
+type aPIListenAcceptedClient struct {
 	grpc.ClientStream
 }
 
-func (x *serverListenRequestsClient) Recv() (*Request, error) {
+func (x *aPIListenAcceptedClient) Recv() (*Request, error) {
 	m := new(Request)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -118,12 +84,12 @@ func (x *serverListenRequestsClient) Recv() (*Request, error) {
 	return m, nil
 }
 
-func (c *serverClient) ListenPeers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (Server_ListenPeersClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Server_ServiceDesc.Streams[2], "/api.Server/ListenPeers", opts...)
+func (c *aPIClient) ListenRequests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenRequestsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[1], "/api.API/ListenRequests", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &serverListenPeersClient{stream}
+	x := &aPIListenRequestsClient{stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -133,16 +99,48 @@ func (c *serverClient) ListenPeers(ctx context.Context, in *Empty, opts ...grpc.
 	return x, nil
 }
 
-type Server_ListenPeersClient interface {
+type API_ListenRequestsClient interface {
+	Recv() (*RequestUpdate, error)
+	grpc.ClientStream
+}
+
+type aPIListenRequestsClient struct {
+	grpc.ClientStream
+}
+
+func (x *aPIListenRequestsClient) Recv() (*RequestUpdate, error) {
+	m := new(RequestUpdate)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *aPIClient) Join(ctx context.Context, in *Peer, opts ...grpc.CallOption) (API_JoinClient, error) {
+	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[2], "/api.API/Join", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aPIJoinClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type API_JoinClient interface {
 	Recv() (*PeerUpdate, error)
 	grpc.ClientStream
 }
 
-type serverListenPeersClient struct {
+type aPIJoinClient struct {
 	grpc.ClientStream
 }
 
-func (x *serverListenPeersClient) Recv() (*PeerUpdate, error) {
+func (x *aPIJoinClient) Recv() (*PeerUpdate, error) {
 	m := new(PeerUpdate)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -150,219 +148,214 @@ func (x *serverListenPeersClient) Recv() (*PeerUpdate, error) {
 	return m, nil
 }
 
-func (c *serverClient) Quit(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+func (c *aPIClient) Quit(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/api.Server/Quit", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.API/Quit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ServerServer is the server API for Server service.
-// All implementations must embed UnimplementedServerServer
+// APIServer is the server API for API service.
+// All implementations must embed UnimplementedAPIServer
 // for forward compatibility
-type ServerServer interface {
-	SendRequest(context.Context, *Request) (*Response, error)
-	AcceptRequest(context.Context, *Request) (*Response, error)
-	Upload(Server_UploadServer) error
-	ListenRequests(*Empty, Server_ListenRequestsServer) error
-	ListenPeers(*Empty, Server_ListenPeersServer) error
+type APIServer interface {
+	SendRequest(context.Context, *Request) (*Empty, error)
+	AcceptRequest(context.Context, *Request) (*Empty, error)
+	ListenAccepted(*Empty, API_ListenAcceptedServer) error
+	ListenRequests(*Empty, API_ListenRequestsServer) error
+	Join(*Peer, API_JoinServer) error
 	Quit(context.Context, *Empty) (*Empty, error)
-	mustEmbedUnimplementedServerServer()
+	mustEmbedUnimplementedAPIServer()
 }
 
-// UnimplementedServerServer must be embedded to have forward compatible implementations.
-type UnimplementedServerServer struct {
+// UnimplementedAPIServer must be embedded to have forward compatible implementations.
+type UnimplementedAPIServer struct {
 }
 
-func (UnimplementedServerServer) SendRequest(context.Context, *Request) (*Response, error) {
+func (UnimplementedAPIServer) SendRequest(context.Context, *Request) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendRequest not implemented")
 }
-func (UnimplementedServerServer) AcceptRequest(context.Context, *Request) (*Response, error) {
+func (UnimplementedAPIServer) AcceptRequest(context.Context, *Request) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AcceptRequest not implemented")
 }
-func (UnimplementedServerServer) Upload(Server_UploadServer) error {
-	return status.Errorf(codes.Unimplemented, "method Upload not implemented")
+func (UnimplementedAPIServer) ListenAccepted(*Empty, API_ListenAcceptedServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListenAccepted not implemented")
 }
-func (UnimplementedServerServer) ListenRequests(*Empty, Server_ListenRequestsServer) error {
+func (UnimplementedAPIServer) ListenRequests(*Empty, API_ListenRequestsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListenRequests not implemented")
 }
-func (UnimplementedServerServer) ListenPeers(*Empty, Server_ListenPeersServer) error {
-	return status.Errorf(codes.Unimplemented, "method ListenPeers not implemented")
+func (UnimplementedAPIServer) Join(*Peer, API_JoinServer) error {
+	return status.Errorf(codes.Unimplemented, "method Join not implemented")
 }
-func (UnimplementedServerServer) Quit(context.Context, *Empty) (*Empty, error) {
+func (UnimplementedAPIServer) Quit(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Quit not implemented")
 }
-func (UnimplementedServerServer) mustEmbedUnimplementedServerServer() {}
+func (UnimplementedAPIServer) mustEmbedUnimplementedAPIServer() {}
 
-// UnsafeServerServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to ServerServer will
+// UnsafeAPIServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to APIServer will
 // result in compilation errors.
-type UnsafeServerServer interface {
-	mustEmbedUnimplementedServerServer()
+type UnsafeAPIServer interface {
+	mustEmbedUnimplementedAPIServer()
 }
 
-func RegisterServerServer(s grpc.ServiceRegistrar, srv ServerServer) {
-	s.RegisterService(&Server_ServiceDesc, srv)
+func RegisterAPIServer(s grpc.ServiceRegistrar, srv APIServer) {
+	s.RegisterService(&API_ServiceDesc, srv)
 }
 
-func _Server_SendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _API_SendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServerServer).SendRequest(ctx, in)
+		return srv.(APIServer).SendRequest(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Server/SendRequest",
+		FullMethod: "/api.API/SendRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServerServer).SendRequest(ctx, req.(*Request))
+		return srv.(APIServer).SendRequest(ctx, req.(*Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Server_AcceptRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _API_AcceptRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Request)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServerServer).AcceptRequest(ctx, in)
+		return srv.(APIServer).AcceptRequest(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Server/AcceptRequest",
+		FullMethod: "/api.API/AcceptRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServerServer).AcceptRequest(ctx, req.(*Request))
+		return srv.(APIServer).AcceptRequest(ctx, req.(*Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Server_Upload_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ServerServer).Upload(&serverUploadServer{stream})
-}
-
-type Server_UploadServer interface {
-	SendAndClose(*Empty) error
-	Recv() (*UploadData, error)
-	grpc.ServerStream
-}
-
-type serverUploadServer struct {
-	grpc.ServerStream
-}
-
-func (x *serverUploadServer) SendAndClose(m *Empty) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *serverUploadServer) Recv() (*UploadData, error) {
-	m := new(UploadData)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func _Server_ListenRequests_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _API_ListenAccepted_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ServerServer).ListenRequests(m, &serverListenRequestsServer{stream})
+	return srv.(APIServer).ListenAccepted(m, &aPIListenAcceptedServer{stream})
 }
 
-type Server_ListenRequestsServer interface {
+type API_ListenAcceptedServer interface {
 	Send(*Request) error
 	grpc.ServerStream
 }
 
-type serverListenRequestsServer struct {
+type aPIListenAcceptedServer struct {
 	grpc.ServerStream
 }
 
-func (x *serverListenRequestsServer) Send(m *Request) error {
+func (x *aPIListenAcceptedServer) Send(m *Request) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Server_ListenPeers_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _API_ListenRequests_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(Empty)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(ServerServer).ListenPeers(m, &serverListenPeersServer{stream})
+	return srv.(APIServer).ListenRequests(m, &aPIListenRequestsServer{stream})
 }
 
-type Server_ListenPeersServer interface {
+type API_ListenRequestsServer interface {
+	Send(*RequestUpdate) error
+	grpc.ServerStream
+}
+
+type aPIListenRequestsServer struct {
+	grpc.ServerStream
+}
+
+func (x *aPIListenRequestsServer) Send(m *RequestUpdate) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _API_Join_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Peer)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(APIServer).Join(m, &aPIJoinServer{stream})
+}
+
+type API_JoinServer interface {
 	Send(*PeerUpdate) error
 	grpc.ServerStream
 }
 
-type serverListenPeersServer struct {
+type aPIJoinServer struct {
 	grpc.ServerStream
 }
 
-func (x *serverListenPeersServer) Send(m *PeerUpdate) error {
+func (x *aPIJoinServer) Send(m *PeerUpdate) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _Server_Quit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _API_Quit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServerServer).Quit(ctx, in)
+		return srv.(APIServer).Quit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.Server/Quit",
+		FullMethod: "/api.API/Quit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServerServer).Quit(ctx, req.(*Empty))
+		return srv.(APIServer).Quit(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Server_ServiceDesc is the grpc.ServiceDesc for Server service.
+// API_ServiceDesc is the grpc.ServiceDesc for API service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Server_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.Server",
-	HandlerType: (*ServerServer)(nil),
+var API_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.API",
+	HandlerType: (*APIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "SendRequest",
-			Handler:    _Server_SendRequest_Handler,
+			Handler:    _API_SendRequest_Handler,
 		},
 		{
 			MethodName: "AcceptRequest",
-			Handler:    _Server_AcceptRequest_Handler,
+			Handler:    _API_AcceptRequest_Handler,
 		},
 		{
 			MethodName: "Quit",
-			Handler:    _Server_Quit_Handler,
+			Handler:    _API_Quit_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Upload",
-			Handler:       _Server_Upload_Handler,
-			ClientStreams: true,
-		},
-		{
-			StreamName:    "ListenRequests",
-			Handler:       _Server_ListenRequests_Handler,
+			StreamName:    "ListenAccepted",
+			Handler:       _API_ListenAccepted_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "ListenPeers",
-			Handler:       _Server_ListenPeers_Handler,
+			StreamName:    "ListenRequests",
+			Handler:       _API_ListenRequests_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "Join",
+			Handler:       _API_Join_Handler,
 			ServerStreams: true,
 		},
 	},

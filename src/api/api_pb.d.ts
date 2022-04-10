@@ -42,26 +42,6 @@ export namespace Peer {
   }
 }
 
-export class PeerUpdate extends jspb.Message {
-  getPeersList(): Array<Peer>;
-  setPeersList(value: Array<Peer>): PeerUpdate;
-  clearPeersList(): PeerUpdate;
-  addPeers(value?: Peer, index?: number): Peer;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): PeerUpdate.AsObject;
-  static toObject(includeInstance: boolean, msg: PeerUpdate): PeerUpdate.AsObject;
-  static serializeBinaryToWriter(message: PeerUpdate, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): PeerUpdate;
-  static deserializeBinaryFromReader(message: PeerUpdate, reader: jspb.BinaryReader): PeerUpdate;
-}
-
-export namespace PeerUpdate {
-  export type AsObject = {
-    peersList: Array<Peer.AsObject>,
-  }
-}
-
 export class Request extends jspb.Message {
   getId(): string;
   setId(value: string): Request;
@@ -96,60 +76,43 @@ export namespace Request {
   }
 }
 
-export class Response extends jspb.Message {
-  getAccept(): boolean;
-  setAccept(value: boolean): Response;
-
-  getUploadtoken(): string;
-  setUploadtoken(value: string): Response;
-
-  getUploadtokenCase(): Response.UploadtokenCase;
+export class PeerUpdate extends jspb.Message {
+  getPeersList(): Array<Peer>;
+  setPeersList(value: Array<Peer>): PeerUpdate;
+  clearPeersList(): PeerUpdate;
+  addPeers(value?: Peer, index?: number): Peer;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Response.AsObject;
-  static toObject(includeInstance: boolean, msg: Response): Response.AsObject;
-  static serializeBinaryToWriter(message: Response, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Response;
-  static deserializeBinaryFromReader(message: Response, reader: jspb.BinaryReader): Response;
+  toObject(includeInstance?: boolean): PeerUpdate.AsObject;
+  static toObject(includeInstance: boolean, msg: PeerUpdate): PeerUpdate.AsObject;
+  static serializeBinaryToWriter(message: PeerUpdate, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PeerUpdate;
+  static deserializeBinaryFromReader(message: PeerUpdate, reader: jspb.BinaryReader): PeerUpdate;
 }
 
-export namespace Response {
+export namespace PeerUpdate {
   export type AsObject = {
-    accept: boolean,
-    uploadtoken: string,
-  }
-
-  export enum UploadtokenCase { 
-    _UPLOADTOKEN_NOT_SET = 0,
-    UPLOADTOKEN = 2,
+    peersList: Array<Peer.AsObject>,
   }
 }
 
-export class UploadData extends jspb.Message {
-  getTarget(): string;
-  setTarget(value: string): UploadData;
-
-  getToken(): string;
-  setToken(value: string): UploadData;
-
-  getData(): Uint8Array | string;
-  getData_asU8(): Uint8Array;
-  getData_asB64(): string;
-  setData(value: Uint8Array | string): UploadData;
+export class RequestUpdate extends jspb.Message {
+  getRequestsList(): Array<Request>;
+  setRequestsList(value: Array<Request>): RequestUpdate;
+  clearRequestsList(): RequestUpdate;
+  addRequests(value?: Request, index?: number): Request;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): UploadData.AsObject;
-  static toObject(includeInstance: boolean, msg: UploadData): UploadData.AsObject;
-  static serializeBinaryToWriter(message: UploadData, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): UploadData;
-  static deserializeBinaryFromReader(message: UploadData, reader: jspb.BinaryReader): UploadData;
+  toObject(includeInstance?: boolean): RequestUpdate.AsObject;
+  static toObject(includeInstance: boolean, msg: RequestUpdate): RequestUpdate.AsObject;
+  static serializeBinaryToWriter(message: RequestUpdate, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): RequestUpdate;
+  static deserializeBinaryFromReader(message: RequestUpdate, reader: jspb.BinaryReader): RequestUpdate;
 }
 
-export namespace UploadData {
+export namespace RequestUpdate {
   export type AsObject = {
-    target: string,
-    token: string,
-    data: Uint8Array | string,
+    requestsList: Array<Request.AsObject>,
   }
 }
 
