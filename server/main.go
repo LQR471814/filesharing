@@ -13,7 +13,6 @@ import (
 
 func main() {
 	// fs := http.FileServer(http.Dir("build"))
-
 	gRPCServer := grpc.NewServer()
 	api.RegisterAPIServer(
 		gRPCServer,
@@ -22,7 +21,7 @@ func main() {
 
 	wrappedServer := grpcweb.WrapServer(gRPCServer)
 
-	listener, err := net.Listen("tcp", ":3000")
+	listener, err := net.Listen("tcp", "0.0.0.0:3000")
 	if err != nil {
 		log.Fatal(err)
 	}

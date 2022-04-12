@@ -20,3 +20,25 @@ export function getPlatform(): Platform {
     return Platform.OTHER
 
 }
+
+export function friendlyPlatformName(platform: Platform): string {
+    switch (platform) {
+        case Platform.DESKTOP:
+            return "Desktop"
+        case Platform.MOBILE:
+            return "Mobile"
+        case Platform.OTHER:
+            return "Other"
+    }
+}
+
+export function platformIcon(platform: Platform): string {
+    switch (platform) {
+        case Platform.DESKTOP:
+            return "/icons/computer-line.svg"
+        case Platform.MOBILE:
+            return "/icons/smartphone-line.svg"
+        case Platform.OTHER:
+            return "/icons/device-line.svg"
+    }
+}
