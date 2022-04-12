@@ -15,6 +15,7 @@ type PeerState struct {
 	Pending   map[string]*api.Request
 	Accepted  map[string]*api.Request
 	OnPeer    api.API_JoinServer
+	OnMessage api.API_ListenMessagesServer
 	OnAccept  api.API_ListenAcceptedServer
 	OnRequest api.API_ListenRequestsServer
 }
@@ -22,7 +23,7 @@ type PeerState struct {
 type Server struct {
 	api.UnimplementedAPIServer
 	Stop  chan bool
-	Peers map[string]PeerState
+	Peers map[string]*PeerState
 }
 
 func (s *Server) waitUntilStopped() {
@@ -62,24 +63,52 @@ func (s *Server) updatePeers() {
 	}
 }
 
+func (s *Server) SendMessage(ctx context.Context, in *api.Message) (*api.Empty, error) {
+	ip := s.getIP(ctx)
+	handler := s.Peers[in.Peer].OnMessage
+	if handler != nil {
+		handler.Send(&api.Message{
+			Peer:    ip,
+			Message: in.Message,
+		})
+		log.Println("Sent", in.Message, "to", ip)
+	}
+	return &api.Empty{}, nil
+}
+
 func (s *Server) SendRequest(ctx context.Context, in *api.Request) (*api.Empty, error) {
 	s.Peers[in.Peer].Pending[in.Id] = in
 	requests := []*api.Request{}
 	for _, v := range s.Peers[in.Peer].Pending {
 		requests = append(requests, v)
 	}
-	s.Peers[in.Id].OnRequest.Send(&api.RequestUpdate{
-		Requests: requests,
-	})
+	handler := s.Peers[in.Id].OnRequest
+	if handler != nil {
+		handler.Send(&api.RequestUpdate{Requests: requests})
+	}
 	return &api.Empty{}, nil
 }
 
 func (s *Server) AcceptRequest(ctx context.Context, in *api.Request) (*api.Empty, error) {
 	ip := s.getIP(ctx)
-	s.Peers[in.Peer].OnAccept.Send(in)
+	handler := s.Peers[in.Peer].OnAccept
+	if handler != nil {
+		handler.Send(in)
+	}
 	s.Peers[ip].Accepted[in.Id] = in
 	delete(s.Peers[ip].Pending, in.Id)
 	return &api.Empty{}, nil
+}
+
+func (s *Server) ListenMessages(_ *api.Empty, server api.API_ListenMessagesServer) error {
+	ip := s.getIP(server.Context())
+	peer, ok := s.Peers[ip]
+	if ok {
+		peer.OnMessage = server
+		s.waitUntilStopped()
+		return nil
+	}
+	return errors.New("Join must be called before trying to listen to messages")
 }
 
 func (s *Server) ListenRequests(_ *api.Empty, server api.API_ListenRequestsServer) error {
@@ -106,24 +135,24 @@ func (s *Server) ListenAccepted(_ *api.Empty, server api.API_ListenAcceptedServe
 
 func (s *Server) Join(in *api.Peer, server api.API_JoinServer) error {
 	ip := s.getIP(server.Context())
-	_, new := s.Peers[ip]
+	_, overwriting := s.Peers[ip]
 
 	in.Id = ip
-	s.Peers[ip] = PeerState{
+	s.Peers[ip] = &PeerState{
 		Peer:     in,
 		Pending:  make(map[string]*api.Request),
 		Accepted: make(map[string]*api.Request),
 		OnPeer:   server,
 	}
 
-	if new {
+	if overwriting {
 		s.updatePeers()
-		log.Println("Peer joined", in)
+		log.Println("Peer overwrote", in)
 	} else {
 		server.Send(&api.PeerUpdate{
 			Peers: s.peerList(),
 		})
-		log.Println("Peer overwrote", in)
+		log.Println("Peer joined", in)
 	}
 
 	s.waitUntilStopped()
@@ -135,14 +164,14 @@ func (s *Server) Quit(ctx context.Context, in *api.Empty) (*api.Empty, error) {
 	delete(s.Peers, ip)
 
 	s.updatePeers()
-	log.Println("Peer quit", s.Peers, ip)
+	log.Println("Peer quit", in)
 
 	return &api.Empty{}, nil
 }
 
 func NewServer() *Server {
 	return &Server{
-		Peers: make(map[string]PeerState, 0),
+		Peers: make(map[string]*PeerState, 0),
 		Stop:  make(chan bool),
 	}
 }

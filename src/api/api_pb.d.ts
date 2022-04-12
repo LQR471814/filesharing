@@ -42,6 +42,28 @@ export namespace Peer {
   }
 }
 
+export class Message extends jspb.Message {
+  getPeer(): string;
+  setPeer(value: string): Message;
+
+  getMessage(): string;
+  setMessage(value: string): Message;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Message.AsObject;
+  static toObject(includeInstance: boolean, msg: Message): Message.AsObject;
+  static serializeBinaryToWriter(message: Message, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Message;
+  static deserializeBinaryFromReader(message: Message, reader: jspb.BinaryReader): Message;
+}
+
+export namespace Message {
+  export type AsObject = {
+    peer: string,
+    message: string,
+  }
+}
+
 export class Request extends jspb.Message {
   getId(): string;
   setId(value: string): Request;

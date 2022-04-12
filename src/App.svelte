@@ -1,32 +1,34 @@
 <script lang="ts">
-  import { APIClient } from "./api/ApiServiceClientPb"
-  import { Empty, Peer } from "./api/api_pb"
-  import { pick as getRandomNoun } from "./common/nouns"
-  import { getPlatform } from "./common/utils"
-  import User from "./User.svelte"
+  import { api } from "./store";
+  import { Empty, Peer } from "./api/api_pb";
+  import { pick as getRandomNoun } from "./common/nouns";
+  import { getPlatform } from "./common/utils";
+  import User from "./User.svelte";
 
-  const APILocation = `http://192.168.1.178:3000`
-  const name = getRandomNoun()
-  const platform = getPlatform()
+  const name = getRandomNoun();
+  const platform = getPlatform();
 
-  // const APILocation = `${window.location.origin}/api`
-  const api = new APIClient(APILocation)
-  const peer = new Peer()
+  const peer = new Peer();
 
-  peer.setName(name)
-  peer.setPlatform(platform)
+  peer.setName(name);
+  peer.setPlatform(platform);
 
-  let peers: Peer[] = []
+  let peers: Peer[] = [];
 
-  const peerStream = api.join(peer)
+  const peerStream = api.join(peer);
   peerStream.on("data", (peerData) => {
-    console.log(peerData.getPeersList())
-    peers = peerData.getPeersList()
+    console.log(peerData.getPeersList());
+    peers = peerData.getPeersList();
+  });
+
+  const messageStream = api.listenMessages(new Empty())
+  messageStream.on("data", (message) => {
+    console.log(message.getPeer(), message.getMessage())
   })
 
   window.onbeforeunload = () => {
-    api.quit(new Empty(), null)
-  }
+    api.quit(new Empty(), null);
+  };
 </script>
 
 <main>
@@ -40,7 +42,7 @@
     {/each}
   </div>
   <p class="flex justify-center w-screen fixed bottom-10">
-    You are {name}
+    you are {name}
   </p>
 </main>
 

@@ -35,6 +35,49 @@ export class APIClient {
     this.options_ = options;
   }
 
+  methodDescriptorSendMessage = new grpcWeb.MethodDescriptor(
+    '/api.API/SendMessage',
+    grpcWeb.MethodType.UNARY,
+    api_pb.Message,
+    api_pb.Empty,
+    (request: api_pb.Message) => {
+      return request.serializeBinary();
+    },
+    api_pb.Empty.deserializeBinary
+  );
+
+  sendMessage(
+    request: api_pb.Message,
+    metadata: grpcWeb.Metadata | null): Promise<api_pb.Empty>;
+
+  sendMessage(
+    request: api_pb.Message,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: api_pb.Empty) => void): grpcWeb.ClientReadableStream<api_pb.Empty>;
+
+  sendMessage(
+    request: api_pb.Message,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: api_pb.Empty) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/api.API/SendMessage',
+        request,
+        metadata || {},
+        this.methodDescriptorSendMessage,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/api.API/SendMessage',
+    request,
+    metadata || {},
+    this.methodDescriptorSendMessage);
+  }
+
   methodDescriptorSendRequest = new grpcWeb.MethodDescriptor(
     '/api.API/SendRequest',
     grpcWeb.MethodType.UNARY,
@@ -119,6 +162,28 @@ export class APIClient {
     request,
     metadata || {},
     this.methodDescriptorAcceptRequest);
+  }
+
+  methodDescriptorListenMessages = new grpcWeb.MethodDescriptor(
+    '/api.API/ListenMessages',
+    grpcWeb.MethodType.SERVER_STREAMING,
+    api_pb.Empty,
+    api_pb.Message,
+    (request: api_pb.Empty) => {
+      return request.serializeBinary();
+    },
+    api_pb.Message.deserializeBinary
+  );
+
+  listenMessages(
+    request: api_pb.Empty,
+    metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<api_pb.Message> {
+    return this.client_.serverStreaming(
+      this.hostname_ +
+        '/api.API/ListenMessages',
+      request,
+      metadata || {},
+      this.methodDescriptorListenMessages);
   }
 
   methodDescriptorListenAccepted = new grpcWeb.MethodDescriptor(

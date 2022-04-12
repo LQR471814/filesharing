@@ -4,8 +4,10 @@ option go_package = "server/api";
 package api;
 
 service API {
+    rpc SendMessage(Message) returns (Empty);
     rpc SendRequest(Request) returns (Empty);
     rpc AcceptRequest(Request) returns (Empty);
+    rpc ListenMessages(Empty) returns (stream Message);
     rpc ListenAccepted(Empty) returns (stream Request);
     rpc ListenRequests(Empty) returns (stream RequestUpdate);
     rpc Join(Peer) returns (stream PeerUpdate);
@@ -34,6 +36,11 @@ message Peer {
     string id = 1; //? use ip address as id
     string name = 2;
     Platform platform = 3;
+}
+
+message Message {
+    string peer = 1;
+    string message = 2;
 }
 
 message Request {

@@ -18,8 +18,10 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type APIClient interface {
+	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Empty, error)
 	SendRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Empty, error)
 	AcceptRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Empty, error)
+	ListenMessages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenMessagesClient, error)
 	ListenAccepted(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenAcceptedClient, error)
 	ListenRequests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenRequestsClient, error)
 	Join(ctx context.Context, in *Peer, opts ...grpc.CallOption) (API_JoinClient, error)
@@ -32,6 +34,15 @@ type aPIClient struct {
 
 func NewAPIClient(cc grpc.ClientConnInterface) APIClient {
 	return &aPIClient{cc}
+}
+
+func (c *aPIClient) SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/api.API/SendMessage", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *aPIClient) SendRequest(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Empty, error) {
@@ -52,8 +63,40 @@ func (c *aPIClient) AcceptRequest(ctx context.Context, in *Request, opts ...grpc
 	return out, nil
 }
 
+func (c *aPIClient) ListenMessages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenMessagesClient, error) {
+	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[0], "/api.API/ListenMessages", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &aPIListenMessagesClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type API_ListenMessagesClient interface {
+	Recv() (*Message, error)
+	grpc.ClientStream
+}
+
+type aPIListenMessagesClient struct {
+	grpc.ClientStream
+}
+
+func (x *aPIListenMessagesClient) Recv() (*Message, error) {
+	m := new(Message)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *aPIClient) ListenAccepted(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenAcceptedClient, error) {
-	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[0], "/api.API/ListenAccepted", opts...)
+	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[1], "/api.API/ListenAccepted", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +128,7 @@ func (x *aPIListenAcceptedClient) Recv() (*Request, error) {
 }
 
 func (c *aPIClient) ListenRequests(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenRequestsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[1], "/api.API/ListenRequests", opts...)
+	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[2], "/api.API/ListenRequests", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +160,7 @@ func (x *aPIListenRequestsClient) Recv() (*RequestUpdate, error) {
 }
 
 func (c *aPIClient) Join(ctx context.Context, in *Peer, opts ...grpc.CallOption) (API_JoinClient, error) {
-	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[2], "/api.API/Join", opts...)
+	stream, err := c.cc.NewStream(ctx, &API_ServiceDesc.Streams[3], "/api.API/Join", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -161,8 +204,10 @@ func (c *aPIClient) Quit(ctx context.Context, in *Empty, opts ...grpc.CallOption
 // All implementations must embed UnimplementedAPIServer
 // for forward compatibility
 type APIServer interface {
+	SendMessage(context.Context, *Message) (*Empty, error)
 	SendRequest(context.Context, *Request) (*Empty, error)
 	AcceptRequest(context.Context, *Request) (*Empty, error)
+	ListenMessages(*Empty, API_ListenMessagesServer) error
 	ListenAccepted(*Empty, API_ListenAcceptedServer) error
 	ListenRequests(*Empty, API_ListenRequestsServer) error
 	Join(*Peer, API_JoinServer) error
@@ -174,11 +219,17 @@ type APIServer interface {
 type UnimplementedAPIServer struct {
 }
 
+func (UnimplementedAPIServer) SendMessage(context.Context, *Message) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
+}
 func (UnimplementedAPIServer) SendRequest(context.Context, *Request) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendRequest not implemented")
 }
 func (UnimplementedAPIServer) AcceptRequest(context.Context, *Request) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AcceptRequest not implemented")
+}
+func (UnimplementedAPIServer) ListenMessages(*Empty, API_ListenMessagesServer) error {
+	return status.Errorf(codes.Unimplemented, "method ListenMessages not implemented")
 }
 func (UnimplementedAPIServer) ListenAccepted(*Empty, API_ListenAcceptedServer) error {
 	return status.Errorf(codes.Unimplemented, "method ListenAccepted not implemented")
@@ -203,6 +254,24 @@ type UnsafeAPIServer interface {
 
 func RegisterAPIServer(s grpc.ServiceRegistrar, srv APIServer) {
 	s.RegisterService(&API_ServiceDesc, srv)
+}
+
+func _API_SendMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Message)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(APIServer).SendMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.API/SendMessage",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(APIServer).SendMessage(ctx, req.(*Message))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _API_SendRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -239,6 +308,27 @@ func _API_AcceptRequest_Handler(srv interface{}, ctx context.Context, dec func(i
 		return srv.(APIServer).AcceptRequest(ctx, req.(*Request))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _API_ListenMessages_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(APIServer).ListenMessages(m, &aPIListenMessagesServer{stream})
+}
+
+type API_ListenMessagesServer interface {
+	Send(*Message) error
+	grpc.ServerStream
+}
+
+type aPIListenMessagesServer struct {
+	grpc.ServerStream
+}
+
+func (x *aPIListenMessagesServer) Send(m *Message) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _API_ListenAccepted_Handler(srv interface{}, stream grpc.ServerStream) error {
@@ -330,6 +420,10 @@ var API_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*APIServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
+			MethodName: "SendMessage",
+			Handler:    _API_SendMessage_Handler,
+		},
+		{
 			MethodName: "SendRequest",
 			Handler:    _API_SendRequest_Handler,
 		},
@@ -343,6 +437,11 @@ var API_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ListenMessages",
+			Handler:       _API_ListenMessages_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "ListenAccepted",
 			Handler:       _API_ListenAccepted_Handler,
