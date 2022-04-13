@@ -6,43 +6,43 @@
   import type { OverlayTarget } from "./overlays/common";
 
   let overlayed: OverlayTarget | null = null;
-
   let peers: { [key: string]: Peer } = {};
 
-  const peerStream = join();
-  peerStream.on("data", (peerData) => {
-    console.log(peerData.getPeersList());
-    for (const p of peerData.getPeersList()) {
-      peers[p.getId()] = p
-    }
-  });
-
-  const messageStream = api.listenMessages(new Empty());
-  messageStream.on("data", (message) => {
-    console.log(message.getPeer(), message.getMessage());
-    messages.update((value) => {
-      console.log(value, {
-        ...value,
-        [message.getPeer()]: [
-          ...(value[message.getPeer()] ?? []),
-          {
-            author: peers[message.getPeer()].getName(),
-            message: message.getMessage(),
-          },
-        ],
+  join(
+    () => {
+      const messageStream = api.listenMessages(new Empty());
+      messageStream.on("data", (message) => {
+        console.log(message.getPeer(), message.getMessage());
+        messages.update((value) => {
+          console.log(value, {
+            ...value,
+            [message.getPeer()]: [
+              ...(value[message.getPeer()] ?? []),
+              {
+                author: peers[message.getPeer()].getName(),
+                message: message.getMessage(),
+              },
+            ],
+          });
+          return {
+            ...value,
+            [message.getPeer()]: [
+              ...(value[message.getPeer()] ?? []),
+              {
+                author: peers[message.getPeer()].getName(),
+                message: message.getMessage(),
+              },
+            ],
+          };
+        });
       });
-      return {
-        ...value,
-        [message.getPeer()]: [
-          ...(value[message.getPeer()] ?? []),
-          {
-            author: peers[message.getPeer()].getName(),
-            message: message.getMessage(),
-          },
-        ],
-      };
-    });
-  });
+    },
+    (data) => {
+      for (const p of data.getPeersList()) {
+        peers[p.getId()] = p;
+      }
+    }
+  );
 
   window.onbeforeunload = () => {
     api.quit(new Empty(), null);

@@ -47,10 +47,12 @@ func (s *Server) getIP(ctx context.Context) string {
 	return ip
 }
 
-func (s *Server) peerList() []*api.Peer {
+func (s *Server) peerList(exclude string) []*api.Peer {
 	peers := []*api.Peer{}
 	for _, p := range s.Peers {
-		peers = append(peers, p.Peer)
+		if p.Peer.Id != exclude {
+			peers = append(peers, p.Peer)
+		}
 	}
 	return peers
 }
@@ -58,7 +60,7 @@ func (s *Server) peerList() []*api.Peer {
 func (s *Server) updatePeers() {
 	for _, u := range s.Peers {
 		u.OnPeer.Send(&api.PeerUpdate{
-			Peers: s.peerList(),
+			Peers: s.peerList(u.Peer.Id),
 		})
 	}
 }
@@ -72,6 +74,8 @@ func (s *Server) SendMessage(ctx context.Context, in *api.Message) (*api.Empty, 
 			Message: in.Message,
 		})
 		log.Println("Sent", in.Message, "to", ip)
+	} else {
+		log.Println("handler nil")
 	}
 	return &api.Empty{}, nil
 }
@@ -146,12 +150,12 @@ func (s *Server) Join(in *api.Peer, server api.API_JoinServer) error {
 	}
 
 	if overwriting {
-		s.updatePeers()
+		server.Send(&api.PeerUpdate{
+			Peers: s.peerList(ip),
+		})
 		log.Println("Peer overwrote", in)
 	} else {
-		server.Send(&api.PeerUpdate{
-			Peers: s.peerList(),
-		})
+		s.updatePeers()
 		log.Println("Peer joined", in)
 	}
 
