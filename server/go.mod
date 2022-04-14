@@ -3,7 +3,8 @@ module filesharing/server
 go 1.18
 
 require (
-	github.com/gorilla/websocket v1.4.1
+	github.com/google/uuid v1.3.0
+	github.com/gorilla/websocket v1.4.2
 	github.com/improbable-eng/grpc-web v0.15.0
 	github.com/rs/cors v1.8.2
 	google.golang.org/grpc v1.45.0

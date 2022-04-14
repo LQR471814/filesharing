@@ -60,7 +60,7 @@
 <div class="fixed bottom-6 w-4/5 sm:w-1/2">
   <input
     class={[
-      "w-full bg-slate-400 bg-opacity-70 p-3 rounded-xl backdrop-blur-sm",
+      "w-full bg-slate-400 bg-opacity-70 p-3 pr-12 rounded-xl backdrop-blur-sm",
       "font-bold text-slate-200 placeholder:text-slate-200",
       ...(platform === Platform.DESKTOP
         ? [

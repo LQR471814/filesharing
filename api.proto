@@ -5,11 +5,8 @@ package api;
 
 service API {
     rpc SendMessage(Message) returns (Empty);
-    rpc SendRequest(Request) returns (Empty);
-    rpc AcceptRequest(Request) returns (Empty);
     rpc ListenMessages(Empty) returns (stream Message);
-    rpc ListenAccepted(Empty) returns (stream Request);
-    rpc ListenRequests(Empty) returns (stream RequestUpdate);
+    rpc ListenConnections(Empty) returns (stream Connection);
     rpc Join(Peer) returns (stream PeerUpdate);
     rpc Quit(Empty) returns (Empty);
 }
@@ -43,19 +40,11 @@ message Message {
     string message = 2;
 }
 
-message Request {
+message Connection {
     string id = 1;
     string peer = 2;
-
-    string name = 3;
-    DataType type = 4;
-    uint64 size = 5;
 }
 
 message PeerUpdate {
     repeated Peer peers = 1;
-}
-
-message RequestUpdate {
-    repeated Request requests = 1;
 }

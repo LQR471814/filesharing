@@ -52,6 +52,9 @@
 <main>
   <div class={overlayed ? "blur-md" : ""}>
     <div class="flex justify-center items-center h-screen">
+      {#if Object.values(peers).length === 0}
+        <p>There are no peers active on your local network</p>
+      {/if}
       {#each Object.values(peers) as p}
         <User
           name={p.getName()}

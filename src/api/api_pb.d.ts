@@ -64,37 +64,25 @@ export namespace Message {
   }
 }
 
-export class Request extends jspb.Message {
+export class Connection extends jspb.Message {
   getId(): string;
-  setId(value: string): Request;
+  setId(value: string): Connection;
 
   getPeer(): string;
-  setPeer(value: string): Request;
-
-  getName(): string;
-  setName(value: string): Request;
-
-  getType(): DataType;
-  setType(value: DataType): Request;
-
-  getSize(): number;
-  setSize(value: number): Request;
+  setPeer(value: string): Connection;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): Request.AsObject;
-  static toObject(includeInstance: boolean, msg: Request): Request.AsObject;
-  static serializeBinaryToWriter(message: Request, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): Request;
-  static deserializeBinaryFromReader(message: Request, reader: jspb.BinaryReader): Request;
+  toObject(includeInstance?: boolean): Connection.AsObject;
+  static toObject(includeInstance: boolean, msg: Connection): Connection.AsObject;
+  static serializeBinaryToWriter(message: Connection, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Connection;
+  static deserializeBinaryFromReader(message: Connection, reader: jspb.BinaryReader): Connection;
 }
 
-export namespace Request {
+export namespace Connection {
   export type AsObject = {
     id: string,
     peer: string,
-    name: string,
-    type: DataType,
-    size: number,
   }
 }
 
@@ -115,26 +103,6 @@ export class PeerUpdate extends jspb.Message {
 export namespace PeerUpdate {
   export type AsObject = {
     peersList: Array<Peer.AsObject>,
-  }
-}
-
-export class RequestUpdate extends jspb.Message {
-  getRequestsList(): Array<Request>;
-  setRequestsList(value: Array<Request>): RequestUpdate;
-  clearRequestsList(): RequestUpdate;
-  addRequests(value?: Request, index?: number): Request;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): RequestUpdate.AsObject;
-  static toObject(includeInstance: boolean, msg: RequestUpdate): RequestUpdate.AsObject;
-  static serializeBinaryToWriter(message: RequestUpdate, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): RequestUpdate;
-  static deserializeBinaryFromReader(message: RequestUpdate, reader: jspb.BinaryReader): RequestUpdate;
-}
-
-export namespace RequestUpdate {
-  export type AsObject = {
-    requestsList: Array<Request.AsObject>,
   }
 }
 

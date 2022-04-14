@@ -78,92 +78,6 @@ export class APIClient {
     this.methodDescriptorSendMessage);
   }
 
-  methodDescriptorSendRequest = new grpcWeb.MethodDescriptor(
-    '/api.API/SendRequest',
-    grpcWeb.MethodType.UNARY,
-    api_pb.Request,
-    api_pb.Empty,
-    (request: api_pb.Request) => {
-      return request.serializeBinary();
-    },
-    api_pb.Empty.deserializeBinary
-  );
-
-  sendRequest(
-    request: api_pb.Request,
-    metadata: grpcWeb.Metadata | null): Promise<api_pb.Empty>;
-
-  sendRequest(
-    request: api_pb.Request,
-    metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: api_pb.Empty) => void): grpcWeb.ClientReadableStream<api_pb.Empty>;
-
-  sendRequest(
-    request: api_pb.Request,
-    metadata: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: api_pb.Empty) => void) {
-    if (callback !== undefined) {
-      return this.client_.rpcCall(
-        this.hostname_ +
-          '/api.API/SendRequest',
-        request,
-        metadata || {},
-        this.methodDescriptorSendRequest,
-        callback);
-    }
-    return this.client_.unaryCall(
-    this.hostname_ +
-      '/api.API/SendRequest',
-    request,
-    metadata || {},
-    this.methodDescriptorSendRequest);
-  }
-
-  methodDescriptorAcceptRequest = new grpcWeb.MethodDescriptor(
-    '/api.API/AcceptRequest',
-    grpcWeb.MethodType.UNARY,
-    api_pb.Request,
-    api_pb.Empty,
-    (request: api_pb.Request) => {
-      return request.serializeBinary();
-    },
-    api_pb.Empty.deserializeBinary
-  );
-
-  acceptRequest(
-    request: api_pb.Request,
-    metadata: grpcWeb.Metadata | null): Promise<api_pb.Empty>;
-
-  acceptRequest(
-    request: api_pb.Request,
-    metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: api_pb.Empty) => void): grpcWeb.ClientReadableStream<api_pb.Empty>;
-
-  acceptRequest(
-    request: api_pb.Request,
-    metadata: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: api_pb.Empty) => void) {
-    if (callback !== undefined) {
-      return this.client_.rpcCall(
-        this.hostname_ +
-          '/api.API/AcceptRequest',
-        request,
-        metadata || {},
-        this.methodDescriptorAcceptRequest,
-        callback);
-    }
-    return this.client_.unaryCall(
-    this.hostname_ +
-      '/api.API/AcceptRequest',
-    request,
-    metadata || {},
-    this.methodDescriptorAcceptRequest);
-  }
-
   methodDescriptorListenMessages = new grpcWeb.MethodDescriptor(
     '/api.API/ListenMessages',
     grpcWeb.MethodType.SERVER_STREAMING,
@@ -186,48 +100,26 @@ export class APIClient {
       this.methodDescriptorListenMessages);
   }
 
-  methodDescriptorListenAccepted = new grpcWeb.MethodDescriptor(
-    '/api.API/ListenAccepted',
+  methodDescriptorListenConnections = new grpcWeb.MethodDescriptor(
+    '/api.API/ListenConnections',
     grpcWeb.MethodType.SERVER_STREAMING,
     api_pb.Empty,
-    api_pb.Request,
+    api_pb.Connection,
     (request: api_pb.Empty) => {
       return request.serializeBinary();
     },
-    api_pb.Request.deserializeBinary
+    api_pb.Connection.deserializeBinary
   );
 
-  listenAccepted(
+  listenConnections(
     request: api_pb.Empty,
-    metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<api_pb.Request> {
+    metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<api_pb.Connection> {
     return this.client_.serverStreaming(
       this.hostname_ +
-        '/api.API/ListenAccepted',
+        '/api.API/ListenConnections',
       request,
       metadata || {},
-      this.methodDescriptorListenAccepted);
-  }
-
-  methodDescriptorListenRequests = new grpcWeb.MethodDescriptor(
-    '/api.API/ListenRequests',
-    grpcWeb.MethodType.SERVER_STREAMING,
-    api_pb.Empty,
-    api_pb.RequestUpdate,
-    (request: api_pb.Empty) => {
-      return request.serializeBinary();
-    },
-    api_pb.RequestUpdate.deserializeBinary
-  );
-
-  listenRequests(
-    request: api_pb.Empty,
-    metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<api_pb.RequestUpdate> {
-    return this.client_.serverStreaming(
-      this.hostname_ +
-        '/api.API/ListenRequests',
-      request,
-      metadata || {},
-      this.methodDescriptorListenRequests);
+      this.methodDescriptorListenConnections);
   }
 
   methodDescriptorJoin = new grpcWeb.MethodDescriptor(
