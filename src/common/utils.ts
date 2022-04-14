@@ -42,3 +42,22 @@ export function platformIcon(platform: Platform): string {
             return "icons/device-line.svg"
     }
 }
+
+export function downloadURL(url: string, filename: string) {
+    const a = document.createElement('a')
+
+    a.href = url
+    a.download = filename
+    a.style.display = 'none'
+
+    document.body.appendChild(a)
+
+    a.click()
+    a.remove()
+}
+
+export function downloadBlob(blob: Blob, filename: string) {
+    const url = window.URL.createObjectURL(blob)
+    downloadURL(url, filename)
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+}

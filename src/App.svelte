@@ -2,6 +2,8 @@
   import { ServerFile, WritableStream, Receiver } from "websocket-ftp"
   import { api, APILocation, join, messages, name } from "./store";
   import { Empty, Peer } from "./api/api_pb";
+  import { downloadBlob } from "./common/utils";
+
   import User from "./User.svelte";
   import Overlay from "./overlays/Overlay.svelte";
   import type { OverlayTarget } from "./overlays/common";
@@ -44,16 +46,16 @@
         const r = new Receiver(
           new WebSocket(`ws://${APILocation}/receive?&id=${conn.getId()}`), {
             onRequest: (request) => {
-              console.log("request", request)
+              console.log("got requests", request)
               return new Promise(r => r(true))
             },
             onReceive: (file, stream) => {
-              console.log("receive", file, stream)
-              data.push({ file: file, stream: stream })
+              stream.onFinish((buffer) => {
+                downloadBlob(new Blob([buffer]), file.Name)
+              })
             },
             onTransfersComplete: () => {
-              alert("transfers complete")
-              console.log(data)
+              console.log("transfers complete", data)
             }
           }
         )

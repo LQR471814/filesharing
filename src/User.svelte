@@ -42,15 +42,15 @@
       });
     }
 
-    console.log(files)
-
     keepOpen = false;
     expanded = false;
     e.currentTarget.value = "";
 
-    const t = new Transfer(`ws://${APILocation}/upload?peer=${id}`, files, {
-      onsuccess: () => console.log("file transfer success!"),
-    });
+    const t = new Transfer(
+      `ws://${APILocation}/upload?peer=${id}`, files, {
+        onsuccess: () => console.log("file transfer success!"),
+      }
+    );
   };
 </script>
 
