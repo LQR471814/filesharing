@@ -22,7 +22,6 @@ type APIClient interface {
 	ListenMessages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenMessagesClient, error)
 	ListenConnections(ctx context.Context, in *Empty, opts ...grpc.CallOption) (API_ListenConnectionsClient, error)
 	Join(ctx context.Context, in *Peer, opts ...grpc.CallOption) (API_JoinClient, error)
-	Quit(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type aPIClient struct {
@@ -138,15 +137,6 @@ func (x *aPIJoinClient) Recv() (*PeerUpdate, error) {
 	return m, nil
 }
 
-func (c *aPIClient) Quit(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, "/api.API/Quit", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // APIServer is the server API for API service.
 // All implementations must embed UnimplementedAPIServer
 // for forward compatibility
@@ -155,7 +145,6 @@ type APIServer interface {
 	ListenMessages(*Empty, API_ListenMessagesServer) error
 	ListenConnections(*Empty, API_ListenConnectionsServer) error
 	Join(*Peer, API_JoinServer) error
-	Quit(context.Context, *Empty) (*Empty, error)
 	mustEmbedUnimplementedAPIServer()
 }
 
@@ -174,9 +163,6 @@ func (UnimplementedAPIServer) ListenConnections(*Empty, API_ListenConnectionsSer
 }
 func (UnimplementedAPIServer) Join(*Peer, API_JoinServer) error {
 	return status.Errorf(codes.Unimplemented, "method Join not implemented")
-}
-func (UnimplementedAPIServer) Quit(context.Context, *Empty) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Quit not implemented")
 }
 func (UnimplementedAPIServer) mustEmbedUnimplementedAPIServer() {}
 
@@ -272,24 +258,6 @@ func (x *aPIJoinServer) Send(m *PeerUpdate) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _API_Quit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(APIServer).Quit(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.API/Quit",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(APIServer).Quit(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // API_ServiceDesc is the grpc.ServiceDesc for API service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -300,10 +268,6 @@ var API_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendMessage",
 			Handler:    _API_SendMessage_Handler,
-		},
-		{
-			MethodName: "Quit",
-			Handler:    _API_Quit_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

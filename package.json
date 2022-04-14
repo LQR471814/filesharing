@@ -30,7 +30,7 @@
   "dependencies": {
     "google-protobuf": "^3.20.1-rc.1",
     "grpc-web": "^1.3.1",
-    "nouns": "^1.0.1",
-    "sirv-cli": "^2.0.0"
+    "sirv-cli": "^2.0.0",
+    "websocket-ftp": "^0.3.1"
   }
 }

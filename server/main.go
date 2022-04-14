@@ -34,16 +34,17 @@ func main() {
 			map[string]http.HandlerFunc{
 				"/upload": func(w http.ResponseWriter, r *http.Request) {
 					p := r.URL.Query().Get("peer")
-					id := uuid.New().String()
-
 					if p == "" {
 						w.Write([]byte("Missing peer query parameter"))
 					}
 
+					id := uuid.New().String()
 					conn, err := upgrader.Upgrade(w, r, nil)
 					if err != nil {
 						panic(err)
 					}
+
+					log.Println("connection", id, "to", p)
 
 					service.Connections[id] = Connection{
 						ToUploader:  make(chan WSMessage, 10),
@@ -77,17 +78,18 @@ func main() {
 					}
 				},
 				"/receive": func(w http.ResponseWriter, r *http.Request) {
-					p := r.URL.Query().Get("peer")
 					id := r.URL.Query().Get("id")
 
-					if p == "" || id == "" {
-						w.Write([]byte("Missing peer or id query parameter"))
+					if id == "" {
+						w.Write([]byte("Missing id query parameter"))
 					}
 
 					conn, err := upgrader.Upgrade(w, r, nil)
 					if err != nil {
 						panic(err)
 					}
+
+					log.Println("receive", id)
 
 					go func() {
 						for msg := range service.Connections[id].ToReceiving {

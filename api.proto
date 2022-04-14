@@ -8,7 +8,6 @@ service API {
     rpc ListenMessages(Empty) returns (stream Message);
     rpc ListenConnections(Empty) returns (stream Connection);
     rpc Join(Peer) returns (stream PeerUpdate);
-    rpc Quit(Empty) returns (Empty);
 }
 
 message Empty {}

@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { api, join, messages, name } from "./store";
+  import { ServerFile, WritableStream, Receiver } from "websocket-ftp"
+  import { api, APILocation, join, messages, name } from "./store";
   import { Empty, Peer } from "./api/api_pb";
   import User from "./User.svelte";
   import Overlay from "./overlays/Overlay.svelte";
@@ -36,24 +37,44 @@
           };
         });
       });
+
+      const connectionStream = api.listenConnections(new Empty())
+      connectionStream.on("data", (conn) => {
+        const data: { file: ServerFile, stream: WritableStream }[] = []
+        const r = new Receiver(
+          new WebSocket(`ws://${APILocation}/receive?&id=${conn.getId()}`), {
+            onRequest: (request) => {
+              console.log("request", request)
+              return new Promise(r => r(true))
+            },
+            onReceive: (file, stream) => {
+              console.log("receive", file, stream)
+              data.push({ file: file, stream: stream })
+            },
+            onTransfersComplete: () => {
+              alert("transfers complete")
+              console.log(data)
+            }
+          }
+        )
+      })
     },
     (data) => {
+      peers = {}
       for (const p of data.getPeersList()) {
         peers[p.getId()] = p;
       }
     }
   );
-
-  window.onbeforeunload = () => {
-    api.quit(new Empty(), null);
-  };
 </script>
 
 <main>
   <div class={overlayed ? "blur-md" : ""}>
-    <div class="flex justify-center items-center h-screen">
+    <div class="flex justify-center items-center h-screen px-[10%]">
       {#if Object.values(peers).length === 0}
-        <p>There are no peers active on your local network</p>
+        <p class="text-center">
+          There are no peers active on your local network
+        </p>
       {/if}
       {#each Object.values(peers) as p}
         <User

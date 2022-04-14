@@ -144,48 +144,5 @@ export class APIClient {
       this.methodDescriptorJoin);
   }
 
-  methodDescriptorQuit = new grpcWeb.MethodDescriptor(
-    '/api.API/Quit',
-    grpcWeb.MethodType.UNARY,
-    api_pb.Empty,
-    api_pb.Empty,
-    (request: api_pb.Empty) => {
-      return request.serializeBinary();
-    },
-    api_pb.Empty.deserializeBinary
-  );
-
-  quit(
-    request: api_pb.Empty,
-    metadata: grpcWeb.Metadata | null): Promise<api_pb.Empty>;
-
-  quit(
-    request: api_pb.Empty,
-    metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: api_pb.Empty) => void): grpcWeb.ClientReadableStream<api_pb.Empty>;
-
-  quit(
-    request: api_pb.Empty,
-    metadata: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: api_pb.Empty) => void) {
-    if (callback !== undefined) {
-      return this.client_.rpcCall(
-        this.hostname_ +
-          '/api.API/Quit',
-        request,
-        metadata || {},
-        this.methodDescriptorQuit,
-        callback);
-    }
-    return this.client_.unaryCall(
-    this.hostname_ +
-      '/api.API/Quit',
-    request,
-    metadata || {},
-    this.methodDescriptorQuit);
-  }
-
 }
 

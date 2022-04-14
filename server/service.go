@@ -88,6 +88,17 @@ func (s *Server) SendMessage(ctx context.Context, in *api.Message) (*api.Empty, 
 	return &api.Empty{}, nil
 }
 
+func (s *Server) ListenConnections(_ *api.Empty, server api.API_ListenConnectionsServer) error {
+	ip := s.getIP(server.Context())
+	peer, ok := s.Peers[ip]
+	if ok {
+		peer.OnConnection = server
+		s.waitUntilStopped()
+		return nil
+	}
+	return errors.New("Join must be called before trying to listen to connections")
+}
+
 func (s *Server) ListenMessages(_ *api.Empty, server api.API_ListenMessagesServer) error {
 	ip := s.getIP(server.Context())
 	peer, ok := s.Peers[ip]
@@ -119,18 +130,17 @@ func (s *Server) Join(in *api.Peer, server api.API_JoinServer) error {
 		log.Println("Peer joined", in)
 	}
 
-	s.waitUntilStopped()
-	return nil
-}
-
-func (s *Server) Quit(ctx context.Context, in *api.Empty) (*api.Empty, error) {
-	ip := s.getIP(ctx)
-	delete(s.Peers, ip)
-
-	s.updatePeers()
-	log.Println("Peer quit", in)
-
-	return &api.Empty{}, nil
+	for {
+		select {
+		case <-s.Stop:
+			return nil
+		case <-server.Context().Done():
+			delete(s.Peers, ip)
+			s.updatePeers()
+			log.Println("Peer quit", ip)
+			return nil
+		}
+	}
 }
 
 func NewServer() *Server {
