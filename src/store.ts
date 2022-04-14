@@ -1,4 +1,3 @@
-import { RpcError, StatusCode } from "grpc-web";
 import { writable } from "svelte/store";
 import { APIClient } from "./api/ApiServiceClientPb";
 import { Peer, PeerUpdate } from "./api/api_pb";
@@ -31,10 +30,18 @@ export function join(
         }
         onUpdate(data)
     })
-    peerStream.on('error', (error) => {
-        console.error(error)
+    peerStream.on('error', () => {
         onDisconnected()
     })
 }
 
-export const messages = writable<{ [key: string]: DisplayMessage[] }>({})
+export type MessagesState = {
+    [key: string]: Thread
+}
+
+export type Thread = {
+    messages: DisplayMessage[]
+    unread: number
+}
+
+export const messages = writable<MessagesState>({})

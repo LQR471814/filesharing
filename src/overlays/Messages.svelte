@@ -1,15 +1,21 @@
 <script lang="ts">
-  import { fade, fly } from "svelte/transition";
+  import { onMount } from "svelte";
+
+  import { fly } from "svelte/transition";
   import { Message, Platform } from "../api/api_pb";
   import { api, platform, messages as messageStore } from "../store";
   import type { DisplayMessage } from "./common";
 
   export let id: string;
 
-  let messages: DisplayMessage[] = [];
-  messageStore.subscribe((value) => (messages = value[id] ?? []));
+  let messages: DisplayMessage[];
+
+  messageStore.subscribe((value) => {
+    messages = value[id].messages;
+  });
 
   let messageInput: string = "";
+
   const send = () => {
     if (messageInput.length === 0) {
       return;
@@ -23,22 +29,37 @@
     messageStore.update((value) => {
       return {
         ...value,
-        [id]: [
-          ...(value[id] ?? []),
-          {
-            author: "You",
-            message: messageInput,
-          },
-        ],
+        [id]: {
+          unread: 0,
+          messages: [
+            ...(value[id].messages ?? []),
+            {
+              author: "you",
+              message: messageInput,
+            },
+          ],
+        },
       };
     });
 
     messageInput = "";
   };
+
+  onMount(() => {
+    messageStore.update((value) => {
+      return {
+        ...value,
+        [id]: {
+          unread: 0,
+          messages: value[id].messages,
+        },
+      };
+    });
+  });
 </script>
 
 {#if messages.length === 0}
-  <h1 class="m-auto px-8 text-center font-bold text-4xl text-slate-800">
+  <h1 class="m-auto px-8 text-center font-bold text-4xl text-slate-600">
     No messages in history
   </h1>
 {:else}

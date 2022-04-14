@@ -1,12 +1,19 @@
 <script lang="ts">
   import { ServerFile, WritableStream, Receiver } from "websocket-ftp";
-  import { api, APILocation, join, messages, name } from "./store";
+  import {
+    api,
+    APILocation,
+    join,
+    messages,
+    MessagesState,
+    name,
+  } from "./store";
   import { Empty, Peer } from "./api/api_pb";
   import { downloadBlob } from "./common/utils";
 
   import User from "./User.svelte";
   import Overlay from "./overlays/Overlay.svelte";
-  import type { OverlayTarget } from "./overlays/common";
+  import { OverlayTarget, OverlayType } from "./overlays/common";
   import Uploader from "./Uploader.svelte";
 
   let overlayed: OverlayTarget | null = null;
@@ -20,25 +27,20 @@
       messageStream.on("data", (message) => {
         console.log(message.getPeer(), message.getMessage());
         messages.update((value) => {
-          console.log(value, {
-            ...value,
-            [message.getPeer()]: [
-              ...(value[message.getPeer()] ?? []),
-              {
-                author: peers[message.getPeer()].getName(),
-                message: message.getMessage(),
-              },
-            ],
-          });
           return {
             ...value,
-            [message.getPeer()]: [
-              ...(value[message.getPeer()] ?? []),
-              {
-                author: peers[message.getPeer()].getName(),
-                message: message.getMessage(),
-              },
-            ],
+            [message.getPeer()]: {
+              unread:
+                (value[message.getPeer()]?.unread ?? 0) +
+                (overlayed?.type !== OverlayType.MESSAGES ? 1 : 0),
+              messages: [
+                ...(value[message.getPeer()]?.messages ?? []),
+                {
+                  author: peers[message.getPeer()].getName(),
+                  message: message.getMessage(),
+                },
+              ],
+            },
           };
         });
       });
@@ -67,11 +69,19 @@
     },
     (data) => {
       peers = {};
-      for (const p of data.getPeersList()) {
-        peers[p.getId()] = p;
-      }
+      messages.update((value) => {
+        const newState: MessagesState = {};
+        for (const p of data.getPeersList()) {
+          newState[p.getId()] = value[p.getId()] ?? {
+            messages: [],
+            unread: 0,
+          };
+          peers[p.getId()] = p;
+        }
+        return newState;
+      });
     },
-    () => disconnected = true,
+    () => (disconnected = true)
   );
 </script>
 
@@ -90,10 +100,8 @@
           name={p.getName()}
           platform={p.getPlatform()}
           id={p.getId()}
-          setOverlay={(target) => {
-            overlayed = target;
-          }}
-          onUpload={(id) => {uploadTarget = id}}
+          setOverlay={(target) => (overlayed = target)}
+          onUpload={(id) => (uploadTarget = id)}
         />
       {/each}
     </div>
@@ -101,11 +109,13 @@
       <p class="flex justify-center items-center">you are {name}</p>
     </div>
     {#if disconnected}
-      <div class={[
-        "flex fixed w-screen bottom-3 justify-center",
-        "sm:pl-10 sm:bottom-10 sm:justify-start"
-      ].join(" ")}>
-        <img src="icons/plug-line.svg" alt="disconnected-plug">
+      <div
+        class={[
+          "flex fixed w-screen bottom-3 justify-center",
+          "sm:pl-10 sm:bottom-10 sm:justify-start",
+        ].join(" ")}
+      >
+        <img src="icons/plug-line.svg" alt="disconnected-plug" />
         <p>disconnected</p>
       </div>
     {/if}
