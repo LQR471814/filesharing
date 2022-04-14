@@ -87,7 +87,7 @@
           "hover:scale-110 hover:cursor-pointer",
         ].join(" ")}
         src="icons/send-plane-2-line.svg"
-        alt="Send"
+        alt="send-message"
         in:fly={{ x: -10, duration: 200 }}
         out:fly={{ x: 10, duration: 200 }}
         on:click={() => send()}

@@ -1,3 +1,4 @@
+import { RpcError, StatusCode } from "grpc-web";
 import { writable } from "svelte/store";
 import { APIClient } from "./api/ApiServiceClientPb";
 import { Peer, PeerUpdate } from "./api/api_pb";
@@ -14,19 +15,25 @@ export const platform = getPlatform();
 
 export function join(
     onJoined: () => void,
-    onUpdate: (data: PeerUpdate) => void
+    onUpdate: (data: PeerUpdate) => void,
+    onDisconnected: () => void,
 ) {
     const peer = new Peer();
     peer.setName(name);
     peer.setPlatform(platform);
 
     let joined = false
-    api.join(peer).on('data', (data) => {
+    const peerStream = api.join(peer)
+    peerStream.on('data', (data) => {
         if (!joined) {
             joined = true
             onJoined()
         }
         onUpdate(data)
+    })
+    peerStream.on('error', (error) => {
+        console.error(error)
+        onDisconnected()
     })
 }
 

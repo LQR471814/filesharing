@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ServerFile, WritableStream, Receiver } from "websocket-ftp"
+  import { ServerFile, WritableStream, Receiver } from "websocket-ftp";
   import { api, APILocation, join, messages, name } from "./store";
   import { Empty, Peer } from "./api/api_pb";
   import { downloadBlob } from "./common/utils";
@@ -7,9 +7,12 @@
   import User from "./User.svelte";
   import Overlay from "./overlays/Overlay.svelte";
   import type { OverlayTarget } from "./overlays/common";
+  import Uploader from "./Uploader.svelte";
 
   let overlayed: OverlayTarget | null = null;
   let peers: { [key: string]: Peer } = {};
+  let uploadTarget: string | null;
+  let disconnected = false;
 
   join(
     () => {
@@ -40,35 +43,39 @@
         });
       });
 
-      const connectionStream = api.listenConnections(new Empty())
+      const connectionStream = api.listenConnections(new Empty());
       connectionStream.on("data", (conn) => {
-        const data: { file: ServerFile, stream: WritableStream }[] = []
+        const data: { file: ServerFile; stream: WritableStream }[] = [];
         const r = new Receiver(
-          new WebSocket(`ws://${APILocation}/receive?&id=${conn.getId()}`), {
+          new WebSocket(`ws://${APILocation}/receive?&id=${conn.getId()}`),
+          {
             onRequest: (request) => {
-              console.log("got requests", request)
-              return new Promise(r => r(true))
+              console.log("got requests", request);
+              return new Promise((r) => r(true));
             },
             onReceive: (file, stream) => {
               stream.onFinish((buffer) => {
-                downloadBlob(new Blob([buffer]), file.Name)
-              })
+                downloadBlob(new Blob([buffer]), file.Name);
+              });
             },
             onTransfersComplete: () => {
-              console.log("transfers complete", data)
-            }
+              console.log("transfers complete", data);
+            },
           }
-        )
-      })
+        );
+      });
     },
     (data) => {
-      peers = {}
+      peers = {};
       for (const p of data.getPeersList()) {
         peers[p.getId()] = p;
       }
-    }
+    },
+    () => disconnected = true,
   );
 </script>
+
+<Uploader id={uploadTarget} />
 
 <main>
   <div class={overlayed ? "blur-md" : ""}>
@@ -86,12 +93,22 @@
           setOverlay={(target) => {
             overlayed = target;
           }}
+          onUpload={(id) => {uploadTarget = id}}
         />
       {/each}
     </div>
-    <p class="flex justify-center w-screen fixed bottom-10">
-      you are {name}
-    </p>
+    <div class="w-screen fixed bottom-10">
+      <p class="flex justify-center items-center">you are {name}</p>
+    </div>
+    {#if disconnected}
+      <div class={[
+        "flex fixed w-screen bottom-3 justify-center",
+        "sm:pl-10 sm:bottom-10 sm:justify-start"
+      ].join(" ")}>
+        <img src="icons/plug-line.svg" alt="disconnected-plug">
+        <p>disconnected</p>
+      </div>
+    {/if}
   </div>
   {#if overlayed !== null}
     <Overlay target={overlayed} onClose={() => (overlayed = null)} />
