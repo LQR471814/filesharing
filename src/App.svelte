@@ -1,12 +1,13 @@
 <script lang="ts">
   import { ServerFile, WritableStream, Receiver } from "websocket-ftp";
   import {
+    peers as peerStore,
     api,
     APILocation,
     join,
     messages,
-    MessagesState,
     name,
+    requests,
   } from "./store";
   import { Empty, Peer } from "./api/api_pb";
   import { downloadBlob } from "./common/utils";
@@ -15,11 +16,17 @@
   import Overlay from "./overlays/Overlay.svelte";
   import { OverlayTarget, OverlayType } from "./overlays/common";
   import Uploader from "./Uploader.svelte";
+  import Badge from "./Badge.svelte";
 
-  let overlayed: OverlayTarget | null = null;
+  let overlayed: OverlayTarget | undefined;
+
   let peers: { [key: string]: Peer } = {};
+  peerStore.subscribe((value) => (peers = value));
+
   let uploadTarget: string | null;
   let disconnected = false;
+
+  let unreadRequests: number = 0;
 
   join(
     () => {
@@ -51,9 +58,21 @@
         const r = new Receiver(
           new WebSocket(`ws://${APILocation}/receive?&id=${conn.getId()}`),
           {
-            onRequest: (request) => {
-              console.log("got requests", request);
-              return new Promise((r) => r(true));
+            onRequest: (files) => {
+              unreadRequests++;
+              return new Promise((resolver) => {
+                console.log("got requests", files);
+                requests.update((value) => {
+                  return {
+                    ...value,
+                    [conn.getId()]: {
+                      peer: conn.getPeer(),
+                      files: files,
+                      resolver: resolver,
+                    },
+                  };
+                });
+              });
             },
             onReceive: (file, stream) => {
               stream.onFinish((buffer) => {
@@ -65,20 +84,6 @@
             },
           }
         );
-      });
-    },
-    (data) => {
-      peers = {};
-      messages.update((value) => {
-        const newState: MessagesState = {};
-        for (const p of data.getPeersList()) {
-          newState[p.getId()] = value[p.getId()] ?? {
-            messages: [],
-            unread: 0,
-          };
-          peers[p.getId()] = p;
-        }
-        return newState;
       });
     },
     () => (disconnected = true)
@@ -119,9 +124,27 @@
         <p>disconnected</p>
       </div>
     {/if}
+    <div class="fixed right-10 bottom-10">
+      <img
+        class={[
+          "transition-all p-1 border-2 border-transparent rounded-xl",
+          "hover:cursor-pointer hover:scale-110 hover:border-neutral-900",
+        ].join(" ")}
+        src="icons/file-transfer-line.svg"
+        alt="pending-requests"
+        on:click={() => {
+          unreadRequests = 0;
+          overlayed = {
+            peer: "",
+            type: OverlayType.REQUESTS,
+          };
+        }}
+      />
+      <Badge number={unreadRequests} />
+    </div>
   </div>
-  {#if overlayed !== null}
-    <Overlay target={overlayed} onClose={() => (overlayed = null)} />
+  {#if overlayed}
+    <Overlay target={overlayed} onClose={() => (overlayed = undefined)} />
   {/if}
 </main>
 
@@ -129,4 +152,10 @@
   @tailwind base;
   @tailwind components;
   @tailwind utilities;
+
+  /* beautiful hack to change the hue of a black image */
+  :global(.as-slate-600) {
+    filter: invert(31%) sepia(15%) saturate(753%) hue-rotate(176deg)
+      brightness(99%) contrast(92%);
+  }
 </style>

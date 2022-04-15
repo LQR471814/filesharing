@@ -31,9 +31,4 @@
   };
 </script>
 
-<input
-  class="hidden"
-  id="file-input"
-  type="file"
-  on:change={upload}
-/>
+<input class="hidden" id="file-input" type="file" multiple on:change={upload} />

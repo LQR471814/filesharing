@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -15,7 +16,7 @@ import (
 func main() {
 	service := NewServer()
 
-	// fs := http.FileServer(http.Dir("build"))
+	fs := http.FileServer(http.Dir("public"))
 	gRPCServer := grpc.NewServer()
 	api.RegisterAPIServer(
 		gRPCServer,
@@ -61,8 +62,13 @@ func main() {
 						}
 					}()
 
+					sender, _, err := net.SplitHostPort(r.RemoteAddr)
+					if err != nil {
+						panic(err)
+					}
+
 					service.Peers[p].OnConnection.Send(&api.Connection{
-						Peer: p,
+						Peer: sender,
 						Id:   id,
 					})
 
@@ -109,17 +115,16 @@ func main() {
 					}
 				},
 			},
-			wrappedServer,
+			SplitGRPCTraffic(
+				func(w http.ResponseWriter, r *http.Request) {
+					if strings.HasSuffix(r.RequestURI, ".js") {
+						w.Header().Set("Content-Type", "text/javascript")
+					}
+					fs.ServeHTTP(w, r)
+				},
+				wrappedServer,
+			),
 		)),
-		// SplitGRPCTraffic(
-		// 	func(w http.ResponseWriter, r *http.Request) {
-		// 		if strings.HasSuffix(r.RequestURI, ".js") {
-		// 			w.Header().Set("Content-Type", "text/javascript")
-		// 		}
-		// 		fs.ServeHTTP(w, r)
-		// 	},
-		// 	wrappedServer,
-		// ),
 	}
 
 	log.Println("listening on port 3000")

@@ -1,12 +1,12 @@
 import { writable } from "svelte/store";
+import type { ServerFile } from "websocket-ftp";
 import { APIClient } from "./api/ApiServiceClientPb";
-import { Peer, PeerUpdate } from "./api/api_pb";
+import { Peer } from "./api/api_pb";
 import { getRandomNoun } from "./common/nouns";
 import { getPlatform } from "./common/utils";
 import type { DisplayMessage } from "./overlays/common"
 
-// const APILocation = `${window.location.host}/api`
-export const APILocation = `192.168.1.178:3000`;
+export const APILocation = `${window.location.host}`
 export const api = new APIClient(`http://${APILocation}`)
 
 export const name = getRandomNoun();
@@ -14,7 +14,6 @@ export const platform = getPlatform();
 
 export function join(
     onJoined: () => void,
-    onUpdate: (data: PeerUpdate) => void,
     onDisconnected: () => void,
 ) {
     const peer = new Peer();
@@ -28,20 +27,53 @@ export function join(
             joined = true
             onJoined()
         }
-        onUpdate(data)
+        peers.update(() => {
+            const newPeers: PeerState = {}
+            messages.update((messages) => {
+                const newMessages: MessagesState = {}
+                requests.update((requests) => {
+                    const newRequests: RequestState = {}
+                    for (const p of data.getPeersList()) {
+                        newPeers[p.getId()] = p;
+                        newMessages[p.getId()] = messages[p.getId()] ?? {
+                            messages: [],
+                            unread: 0,
+                        };
+                        for (const [id, request] of Object.entries(requests)) {
+                            if (request.peer === p.getId()) {
+                                newRequests[id] = request
+                            }
+                        }
+                    }
+                    return newRequests
+                })
+                return newMessages;
+            });
+            return newPeers
+        })
     })
     peerStream.on('error', () => {
         onDisconnected()
     })
 }
 
-export type MessagesState = {
-    [key: string]: Thread
-}
-
 export type Thread = {
     messages: DisplayMessage[]
     unread: number
 }
-
+export type MessagesState = {
+    [key: string]: Thread
+}
 export const messages = writable<MessagesState>({})
+
+export type PeerState = { [key: string]: Peer }
+export const peers = writable<PeerState>({})
+
+export type Request = {
+    peer: string
+    files: ServerFile[]
+    resolver: (choice: boolean) => void
+}
+export type RequestState = { [key: string]: Request }
+export const requests = writable<RequestState>({})
+export const unreadRequests = writable<number>(0)

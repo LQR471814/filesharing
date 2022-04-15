@@ -20,7 +20,7 @@
     "mx-2 p-1 rounded-xl",
     "border-2 border-transparent",
     "hover:border-neutral-900 hover:cursor-pointer",
-    "transition-all duration-100",
+    "transition-all",
   ].join(" ");
 </script>
 
@@ -67,8 +67,6 @@
         />
       </div>
     {/if}
-    <div class="absolute top-[-12px] right-[-12px]">
-      <Badge number={unread} />
-    </div>
+    <Badge number={unread} />
   </div>
 </div>

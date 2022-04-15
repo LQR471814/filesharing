@@ -1,6 +1,6 @@
 export enum OverlayType {
     MESSAGES,
-    FILES
+    REQUESTS
 }
 
 export type OverlayTarget = {

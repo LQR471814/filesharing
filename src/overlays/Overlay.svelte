@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-
   import { fade, fly } from "svelte/transition";
   import { OverlayTarget, OverlayType } from "./common";
+
   import Messages from "./Messages.svelte";
+  import Requests from "./Requests.svelte";
 
   export let target: OverlayTarget;
   export let onClose: () => void;
@@ -28,6 +29,8 @@
 >
   {#if target?.type === OverlayType.MESSAGES}
     <Messages id={target.peer} />
+  {:else if target?.type === OverlayType.REQUESTS}
+    <Requests />
   {/if}
   <img
     class={[
