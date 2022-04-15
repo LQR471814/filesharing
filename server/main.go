@@ -2,9 +2,11 @@ package main
 
 import (
 	"filesharing/server/api"
+	"flag"
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -14,6 +16,11 @@ import (
 )
 
 func main() {
+	address := flag.String("addr", "0.0.0.0", "The address to host on")
+	port := flag.Int("port", 8080, "The port to listen on")
+
+	flag.Parse()
+
 	service := NewServer()
 
 	fs := http.FileServer(http.Dir("public"))
@@ -25,7 +32,7 @@ func main() {
 
 	wrappedServer := grpcweb.WrapServer(gRPCServer)
 
-	listener, err := net.Listen("tcp", "0.0.0.0:3000")
+	listener, err := net.Listen("tcp", *address+":"+strconv.Itoa(*port))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -127,7 +134,7 @@ func main() {
 		)),
 	}
 
-	log.Println("listening on port 3000")
+	log.Printf("listening on port %v\n", *port)
 
 	server.Serve(listener)
 }
