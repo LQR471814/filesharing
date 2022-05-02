@@ -16,7 +16,6 @@ var goog = jspb;
 var global = Function('return this')();
 
 goog.exportSymbol('proto.api.Connection', null, global);
-goog.exportSymbol('proto.api.DataType', null, global);
 goog.exportSymbol('proto.api.Empty', null, global);
 goog.exportSymbol('proto.api.Message', null, global);
 goog.exportSymbol('proto.api.Peer', null, global);
@@ -897,19 +896,6 @@ proto.api.PeerUpdate.prototype.clearPeersList = function() {
   return this.setPeersList([]);
 };
 
-
-/**
- * @enum {number}
- */
-proto.api.DataType = {
-  UNKNOWN: 0,
-  ARCHIVE: 1,
-  DOCUMENT: 2,
-  PDF: 3,
-  AUDIO: 4,
-  IMAGE: 5,
-  VIDEO: 6
-};
 
 /**
  * @enum {number}

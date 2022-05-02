@@ -36,7 +36,7 @@ rpc:
 		--grpc-web_out=import_style=typescript,mode=grpcwebtext:$(WEB_PATH)$(S)api \
 		$(PROTO_PATH)$(S)api.proto
 
-dist:
+dist: rpc
 	npm run build
 	cd server && \
 		go build -o ..$(S)$(SERVER_BIN_NAME)

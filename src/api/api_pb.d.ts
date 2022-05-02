@@ -106,15 +106,6 @@ export namespace PeerUpdate {
   }
 }
 
-export enum DataType { 
-  UNKNOWN = 0,
-  ARCHIVE = 1,
-  DOCUMENT = 2,
-  PDF = 3,
-  AUDIO = 4,
-  IMAGE = 5,
-  VIDEO = 6,
-}
 export enum Platform { 
   DESKTOP = 0,
   MOBILE = 1,
