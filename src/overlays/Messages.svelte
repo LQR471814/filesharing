@@ -1,45 +1,38 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { twMerge } from "tailwind-merge";
 
   import { fly } from "svelte/transition";
-  import { Message, Platform } from "../api/api_pb";
-  import { api, platform, messages as messageStore } from "../store";
-  import type { DisplayMessage } from "./common";
+  import { api, platform, messages as messageStore } from "../common";
+  import { derived } from "svelte/store";
+  import { Platform } from "../api/api";
+  import { SendPlane2Line } from "svelte-remixicon";
 
   export let id: string;
 
-  let messages: DisplayMessage[];
-
-  messageStore.subscribe((value) => {
-    messages = value[id].messages;
+  const messages = derived(messageStore, ($messageStore) => {
+    return $messageStore[id].messages;
   });
 
   let messageInput: string = "";
 
   const send = () => {
-    if (messageInput.length === 0) {
+    if (messageInput.trim().length === 0) {
       return;
     }
 
-    const message = new Message();
-    message.setPeer(id);
-    message.setMessage(messageInput);
-    api.sendMessage(message, null);
+    api.sendMessage({
+      peer: id,
+      message: messageInput,
+    });
 
-    messageStore.update((value) => {
-      return {
-        ...value,
-        [id]: {
-          unread: 0,
-          messages: [
-            ...(value[id].messages ?? []),
-            {
-              author: "you",
-              message: messageInput,
-            },
-          ],
-        },
-      };
+    messageStore.update(($messageStore) => {
+      $messageStore[id].unread = 0;
+      $messageStore[id].messages.push({
+        author: "you",
+        message: messageInput,
+      });
+      return $messageStore;
     });
 
     messageInput = "";
@@ -58,13 +51,13 @@
   });
 </script>
 
-{#if messages.length === 0}
-  <h1 class="m-auto px-8 text-center font-bold text-4xl text-slate-600">
+{#if $messages.length === 0}
+  <h1 class="m-auto px-8 text-center font-bold text-4xl text-zinc-600">
     No messages in history
   </h1>
 {:else}
   <div class="w-4/5 sm:w-1/2 h-fit m-auto">
-    {#each messages as msg}
+    {#each $messages as msg}
       <div class="px-5 py-3">
         <p class="font-bold">{msg.author}</p>
         <p>{msg.message}</p>
@@ -73,23 +66,20 @@
   </div>
 {/if}
 <div
-  class={[
-    "fixed bottom-[-50px] h-40 w-[calc(80%+30px)] sm:w-[calc(50%+30px)]",
-    "gradient m-auto blur-md",
-  ].join(" ")}
+  class={twMerge(
+    "fixed bottom-0 h-40 w-[calc(80%+30px)] sm:w-[calc(50%+30px)]",
+    "gradient m-auto blur-md"
+  )}
 />
 <div class="fixed bottom-6 w-4/5 sm:w-1/2">
   <input
-    class={[
-      "w-full bg-slate-400 bg-opacity-70 p-3 pr-12 rounded-xl backdrop-blur-sm",
-      "font-bold text-slate-200 placeholder:text-slate-200",
-      ...(platform === Platform.DESKTOP
-        ? [
-            "outline-none focus:outline-2 focus:outline-slate-600",
-            "transition-all",
-          ]
-        : []),
-    ].join(" ")}
+    class={twMerge(
+      "w-full bg-zinc-400 bg-opacity-70 p-3 pr-12 rounded-xl",
+      "font-bold text-zinc-200 placeholder:text-zinc-200 border-2 border-zinc-400",
+      platform === Platform.DESKTOP
+        ? "outline-none focus:outline-2 focus:outline-zinc-600 transition-all"
+        : undefined
+    )}
     type="text"
     placeholder="Message"
     bind:value={messageInput}
@@ -98,31 +88,30 @@
         send();
       }
     }}
-    in:fly={{ y: 100, duration: 300 }}
   />
   {#if messageInput.length > 0}
-    <div class="absolute top-0 right-0 h-full">
-      <img
-        class={[
-          "p-3 h-full transition-all opacity-60",
-          "hover:scale-110 hover:cursor-pointer",
-        ].join(" ")}
-        src="icons/send-plane-2-line.svg"
-        alt="send-message"
-        in:fly={{ x: -10, duration: 200 }}
-        out:fly={{ x: 10, duration: 200 }}
-        on:click={() => send()}
+    <button
+      class="p-3 absolute top-0 right-0 h-full"
+      in:fly={{ x: -10, duration: 200 }}
+      out:fly={{ x: 10, duration: 200 }}
+      on:click={() => send()}
+    >
+      <SendPlane2Line
+        class={twMerge(
+          "h-full transition-all opacity-60",
+          "hover:scale-110 hover:cursor-pointer"
+        )}
       />
-    </div>
+    </button>
   {/if}
 </div>
 
-<style>
+<style lang="postcss">
   .gradient {
     background: linear-gradient(
       0deg,
-      rgba(100, 116, 139, 1) 0%,
-      rgba(255, 255, 255, 0) 100%
+      theme(colors.zinc.500) 0%,
+      transparent 60%
     );
   }
 </style>

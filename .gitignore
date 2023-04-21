@@ -1,10 +1,8 @@
-.vscode
-
 /node_modules/
-/public/build/
-/dist
+/build/
+/dist/
+/server/server*
 
 .DS_Store
-yarn.lock
 
 *.exe

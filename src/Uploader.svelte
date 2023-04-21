@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { BrowserFileStream, ClientFile, Transfer } from "websocket-ftp";
-  import { APILocation } from "./store";
+  import { BrowserFileStream, Transfer, type ClientFile } from "websocket-ftp";
+  import { HOST } from "./common";
 
   export let id: string | null;
 
@@ -25,8 +25,8 @@
 
     e.currentTarget.value = "";
 
-    const t = new Transfer(`ws://${APILocation}/upload?peer=${id}`, files, {
-      onsuccess: () => console.log("file transfer success!"),
+    new Transfer(`ws://${HOST}/upload?peer=${id}`, files, {
+      onsuccess: () => console.info("file transfer success!"),
     });
   };
 </script>

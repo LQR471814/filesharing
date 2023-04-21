@@ -1,49 +1,37 @@
-PROTO_PATH = $(abspath .)
-SERVER_PATH = $(abspath ./server)
-WEB_PATH = $(abspath ./src)
-
-GO_RPC_ELEMENTS = api.pb.go api_grpc.pb.go
-WEB_RPC_ELEMENTS = api_pb.d.ts api_pb.js ApiServiceClientPb.ts
+NPM = pnpm
+NPX = $(NPM) exec
+PROTO = $(wildcard proto/*.proto)
 
 ifeq ($(OS),Windows_NT)
-	S = \\
-	SERVER_BIN_NAME = server.exe
-	COPY = xcopy /E/H
-	MOVE = move
-	RMDIR = rmdir /Q/S
-else
-	S = /
-	SERVER_BIN_NAME = server
-	COPY = cp -R
-	MOVE = mv
-	RMDIR = rm -r
+	EXT = .exe
 endif
 
-clean:
-	$(RMDIR) dist
+# building
 
-rpc:
-	protoc \
-		--proto_path=$(PROTO_PATH) \
-		--go_out=$(SERVER_PATH)$(S)api \
-		--go-grpc_out=$(SERVER_PATH)$(S)api \
-		--go_opt=paths=source_relative \
-		--go-grpc_opt=paths=source_relative \
-		$(PROTO_PATH)$(S)api.proto
-	protoc \
-		--proto_path=$(PROTO_PATH) \
-		--js_out=import_style=commonjs:$(WEB_PATH)$(S)api \
-		--grpc-web_out=import_style=typescript,mode=grpcwebtext:$(WEB_PATH)$(S)api \
-		$(PROTO_PATH)$(S)api.proto
+default: server-bin dist
+	$(NPM) run build
+	rm -rf dist/*
+	cp server/server$(EXT) dist/server$(EXT)
+	cp -r build dist/public
 
-dist: rpc
-	npm run build
-	cd server && \
-		go build -o ..$(S)$(SERVER_BIN_NAME)
-
-	mkdir dist
-	$(RMDIR) dist
+dist:
 	mkdir dist
 
-	$(MOVE) $(SERVER_BIN_NAME) dist$(S)$(SERVER_BIN_NAME)
-	$(COPY) public dist$(S)public$(S)
+server-bin:
+	cd server && go build -o server$(EXT)
+
+# development
+
+server/api:
+	mkdir server/api
+
+src/api:
+	mkdir src/api
+
+protobuf: server/api src/api
+	protoc -I=proto --go_out=server/ --go-grpc_out=server/ $(PROTO)
+	$(NPX) protoc --ts_out src/api \
+		--ts_opt long_type_string \
+		--ts_opt optimize_code_size \
+		--proto_path proto \
+		$(PROTO)

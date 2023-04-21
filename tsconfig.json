@@ -2,8 +2,15 @@
   "compilerOptions": {
     "strict": true,
     "noImplicitAny": true,
+    "types": ["vite/client"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "target": "ESNext",
+    "module": "ESNext"
   },
   "extends": "@tsconfig/svelte/tsconfig.json",
   "include": ["src/**/*"],
-  "exclude": ["node_modules/*", "__sapper__/*", "public/*"],
+  "exclude": [
+    "node_modules/*",
+    "public/*",
+  ]
 }

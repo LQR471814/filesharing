@@ -1,10 +1,13 @@
 <script lang="ts">
-  import { fly, fade } from "svelte/transition";
-  import type { Platform } from "./api/api_pb";
-  import { friendlyPlatformName, platformIcon } from "./common/utils";
-  import { OverlayTarget, OverlayType } from "./overlays/common";
-  import { messages } from "./store";
+  import { fly } from "svelte/transition";
+  import type { Platform } from "./api/api";
+  import { messages } from "./common";
   import Badge from "./Badge.svelte";
+  import type { OverlayTarget } from "./overlays/common";
+  import { twMerge } from "tailwind-merge";
+  import { FileTransferLine, Message2Line } from "svelte-remixicon";
+  import { platformMeta } from "./common/utils";
+  import { Motion, AnimateSharedLayout } from "svelte-motion";
 
   export let platform: Platform;
   export let name: string;
@@ -13,60 +16,80 @@
   export let setOverlay: (type: OverlayTarget) => void;
 
   let expanded = false;
+
   let unread = 0;
   messages.subscribe((value) => (unread = value[id]?.unread ?? 0));
 
-  const operationStyle = [
-    "mx-2 p-1 rounded-xl",
-    "border-2 border-transparent",
-    "hover:border-neutral-900 hover:cursor-pointer",
-    "transition-all",
-  ].join(" ");
+  const operationStyle = twMerge(
+    "p-1 rounded-xl border-2 border-transparent",
+    "hover:border-zinc-900 hover:cursor-pointer",
+    "transition-all"
+  );
 </script>
 
-<div
-  class={`mx-2 px-5 py-2 rounded-xl ${expanded ? "shadow-xl" : ""}`}
-  on:mouseenter={() => (expanded = true)}
-  on:mouseleave={() => (expanded = false)}
->
-  <div class="relative">
-    <div
-      class={[
-        `flex ${expanded ? "" : "flex-col"} items-center`,
-        "hover:cursor-default",
-      ].join(" ")}
-    >
-      <img src={platformIcon(platform)} alt={friendlyPlatformName(platform)} />
-      <div class={`${expanded ? "pl-4" : "py-1"}`}>
-        <p>{name}</p>
-        {#if expanded}
-          <p in:fade={{ duration: 100 }}>{id}</p>
-        {/if}
-      </div>
-    </div>
+<AnimateSharedLayout>
+  <Motion let:motion={containerMotion} layout>
+    <Motion let:motion={iconMotion} layout>
+      <Motion let:motion={nameMotion} layout>
+        <button
+          class={twMerge(
+            "px-5 py-2 rounded-xl bg-white",
+            expanded ? "shadow-xl" : "shadow-md"
+          )}
+          on:click={() => (expanded = !expanded)}
+          use:containerMotion
+        >
+          <div class="relative">
+            <div
+              class={twMerge(
+                "flex items-center",
+                expanded ? undefined : "flex-col"
+              )}
+            >
+              <div use:iconMotion>
+                <svelte:component this={platformMeta[platform].icon} />
+              </div>
+              <div class={expanded ? "pl-4" : "py-1"}>
+                <p class="text-left" use:nameMotion>{name}</p>
+                {#if expanded}
+                  <p in:fly={{ x: -20, duration: 400 }}>{id}</p>
+                {/if}
+              </div>
+            </div>
 
-    {#if expanded}
-      <div class="flex justify-center py-1" in:fly={{ y: 10, duration: 150 }}>
-        <label for="file-input" on:click={() => onUpload(id)}>
-          <img
-            class={operationStyle}
-            src="icons/file-transfer-line.svg"
-            alt="transfer-file"
-          />
-        </label>
-        <img
-          class={operationStyle}
-          src="icons/message-2-line.svg"
-          alt="view-messages"
-          on:click={() => {
-            setOverlay({
-              peer: id,
-              type: OverlayType.MESSAGES,
-            });
-          }}
-        />
-      </div>
-    {/if}
-    <Badge number={unread} />
-  </div>
-</div>
+            {#if expanded}
+              <div class="flex gap-2 justify-center py-1">
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <label
+                  class={operationStyle}
+                  for="file-input"
+                  on:click={(e) => {
+                    e.stopPropagation();
+                    onUpload(id);
+                  }}
+                  in:fly={{ y: 5, duration: 400 }}
+                >
+                  <FileTransferLine />
+                </label>
+                <button
+                  class={operationStyle}
+                  on:click={(e) => {
+                    e.stopPropagation();
+                    setOverlay({
+                      peer: id,
+                      type: "MESSAGES",
+                    });
+                  }}
+                  in:fly={{ y: 5, duration: 400, delay: 50 }}
+                >
+                  <Message2Line />
+                </button>
+              </div>
+            {/if}
+            <Badge number={unread} />
+          </div>
+        </button>
+      </Motion>
+    </Motion>
+  </Motion>
+</AnimateSharedLayout>
