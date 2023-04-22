@@ -2,6 +2,8 @@ NPM = pnpm
 NPX = $(NPM) exec
 PROTO = $(wildcard proto/*.proto)
 
+export CGO_ENABLED = 0
+
 ifeq ($(OS),Windows_NT)
 	EXT = .exe
 endif
