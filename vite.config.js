@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     optimizeDeps: {
-      exclude: ["svelte-remixicon"]
-    }
+      exclude: ["svelte-remixicon"],
+    },
   };
 });

@@ -1,16 +1,14 @@
+import ComputerLine from "svelte-remixicon/lib/icons/ComputerLine.svelte";
+import DeviceLine from "svelte-remixicon/lib/icons/DeviceLine.svelte";
+import FileLine from "svelte-remixicon/lib/icons/FileLine.svelte";
+import FileMusicLine from "svelte-remixicon/lib/icons/FileMusicLine.svelte";
+import FilePdfLine from "svelte-remixicon/lib/icons/FilePdfLine.svelte";
+import FileTextLine from "svelte-remixicon/lib/icons/FileTextLine.svelte";
+import FileZipLine from "svelte-remixicon/lib/icons/FileZipLine.svelte";
+import ImageLine from "svelte-remixicon/lib/icons/ImageLine.svelte";
+import MovieLine from "svelte-remixicon/lib/icons/MovieLine.svelte";
+import SmartphoneLine from "svelte-remixicon/lib/icons/SmartphoneLine.svelte";
 import { ComponentType, SvelteComponentTyped } from "svelte";
-import {
-  ComputerLine,
-  DeviceLine,
-  FileLine,
-  FileMusicLine,
-  FilePdfLine,
-  FileTextLine,
-  FileZipLine,
-  ImageLine,
-  MovieLine,
-  SmartphoneLine,
-} from "svelte-remixicon";
 import { Platform } from "../api/api";
 
 export function getPlatform(): Platform {

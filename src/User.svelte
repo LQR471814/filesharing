@@ -5,7 +5,9 @@
   import Badge from "./Badge.svelte";
   import type { OverlayTarget } from "./overlays/common";
   import { twMerge } from "tailwind-merge";
-  import { FileTransferLine, Message2Line } from "svelte-remixicon";
+  import FileTransferLine from "svelte-remixicon/lib/icons/FileTransferLine.svelte"
+  import Message2Line from "svelte-remixicon/lib/icons/Message2Line.svelte"
+
   import { platformMeta } from "./common/utils";
   import { Motion, AnimateSharedLayout } from "svelte-motion";
 

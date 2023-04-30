@@ -40,20 +40,6 @@ export function manageStream<T extends object>(
       manageStream(generate, onMessage, key);
     }, 3000);
   });
-  call.headers
-    .then(() => {
-      console.info("connected");
-      connectionState.update(($connectionState) => {
-        $connectionState.set(key!, true);
-        return $connectionState;
-      });
-    })
-    .catch((e) => {
-      if (e.message.includes("NetworkError")) {
-        return;
-      }
-      throw e;
-    });
 
   return () => {
     delete managementState[key!];
@@ -141,7 +127,12 @@ manageStream(
           messages: [],
         };
       }
-      $messages[message.peer].unread++;
+      overlaid.update(($overlaid) => {
+        if ($overlaid?.type !== "MESSAGES") {
+          $messages[message.peer].unread++;
+        }
+        return $overlaid;
+      });
       $messages[message.peer].messages.push({
         author: get(peers)[message.peer].name,
         message: message.message,

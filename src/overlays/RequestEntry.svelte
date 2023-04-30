@@ -4,7 +4,9 @@
   import type { Platform } from "../api/api";
   import { type Request, requests } from "../common";
   import { twMerge } from "tailwind-merge";
-  import { CheckLine, CloseLine } from "svelte-remixicon";
+
+  import CheckLine from "svelte-remixicon/lib/icons/CheckLine.svelte"
+  import CloseLine from "svelte-remixicon/lib/icons/CloseLine.svelte"
 
   export let name: string;
   export let platform: Platform;
