@@ -3,7 +3,7 @@ import type { ServerStreamingCall } from "@protobuf-ts/runtime-rpc";
 import { Peer } from "./api/api";
 import { APIClient } from "./api/api.client";
 import { derived, get, writable } from "svelte/store";
-import { Receiver, type ServerFile } from "websocket-ftp";
+import { type ServerFile } from "websocket-ftp";
 import { getRandomNoun } from "./common/nouns";
 import { downloadBlob, getPlatform } from "./common/utils";
 import type { DisplayMessage, OverlayTarget } from "./overlays/common";
